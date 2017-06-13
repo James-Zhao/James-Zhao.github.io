@@ -1,7 +1,7 @@
-name: Ewerton Nascimento
-title: Ewerton Nascimento
-description: This is my blog where I talk about software development.
-meta_description: "Ewerton Nascimento"
+name: James Zhao
+title: James Zhao
+description: The people who are crazy enough to think they can change the world are the ones who do.
+meta_description: "James Zhao"
 image: /assets/images/profile.png
 
 markdown: kramdown
@@ -13,11 +13,11 @@ logo: false
 paginate: 15
 permalink: /:title
 
-twitter:
-  username: ewertonorg
+weibo:
+  username: James-Zhao
 # Details for the RSS feed generator
-url:            'ewertonorg.github.io'
-author:         'Ewerton Nascimento'
+url:            'James-Zhao.github.io'
+author:         'James Zhao'
 
 gems:
   - jekyll-paginate

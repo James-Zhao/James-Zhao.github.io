@@ -1,1 +1,1 @@
-my personal blog
+http://jameszhao.me/
