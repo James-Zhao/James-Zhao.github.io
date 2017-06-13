@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ewerton Nascimento</title>
+    <description>This is my blog where I talk about software development.</description>
+    <link>http://localhost:4000//</link>
+    <atom:link href="http://localhost:4000//feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Tue, 13 Jun 2017 22:35:49 +0800</pubDate>
+    <lastBuildDate>Tue, 13 Jun 2017 22:35:49 +0800</lastBuildDate>
+    <generator>Jekyll v3.3.1</generator>
+    
+      <item>
+        <title>Readability of large integer literals</title>
+        <description>&lt;p&gt;Sometimes we write programs which contain literals numeric. Large numbers can be very difficult to read.&lt;/p&gt;
+
+&lt;p&gt;How many zeroes are there?&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000000000&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ten_billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000000000&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In Ruby we can add underscore to large numeric literals to improve their readability.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1_000_000_000&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ten_billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10_000_000_000&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As you can see it was much easier to read.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 01 Mar 2017 06:17:00 +0800</pubDate>
+        <link>http://localhost:4000//readability-large-integer-literals</link>
+        <guid isPermaLink="true">http://localhost:4000//readability-large-integer-literals</guid>
+        
+        
+        <category>beginner</category>
+        
+      </item>
+    
+  </channel>
+</rss>
