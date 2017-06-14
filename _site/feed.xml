@@ -5,59 +5,34 @@
     <description>The people who are crazy enough to think they can change the world are the ones who do.</description>
     <link>http://localhost:4000//</link>
     <atom:link href="http://localhost:4000//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 14 Jun 2017 00:26:01 +0800</pubDate>
-    <lastBuildDate>Wed, 14 Jun 2017 00:26:01 +0800</lastBuildDate>
+    <pubDate>Wed, 14 Jun 2017 23:22:55 +0800</pubDate>
+    <lastBuildDate>Wed, 14 Jun 2017 23:22:55 +0800</lastBuildDate>
     <generator>Jekyll v3.3.1</generator>
-    
-      <item>
-        <title>Readability of large integer literals</title>
-        <description>&lt;p&gt;Sometimes we write programs which contain literals numeric. Large numbers can be very difficult to read.&lt;/p&gt;
-
-&lt;p&gt;How many zeroes are there?&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000000000&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;ten_billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000000000&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In Ruby we can add underscore to large numeric literals to improve their readability.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1_000_000_000&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;ten_billion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10_000_000_000&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;As you can see it was much easier to read.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 29 Mar 2017 06:17:00 +0800</pubDate>
-        <link>http://localhost:4000//readability-large-integer-literals</link>
-        <guid isPermaLink="true">http://localhost:4000//readability-large-integer-literals</guid>
-        
-        
-        <category>beginner</category>
-        
-      </item>
     
       <item>
         <title>my first blog</title>
         <description>&lt;p&gt;这篇博客是对String的总结，注意，不是系统地讲解String方方面面，想学String的全部知识，看看Java编程思想的字符串这一章就行，这篇博客只是对String一些细节问题的总结。整篇博客会比较零散，我尽量系统地总结好，而且会持续更新。具体引用别人博客的地方，我会附上链接。&lt;/p&gt;
 
-&lt;h2 id=&quot;string-stringbuffer-stringbuilder&quot;&gt;String, StringBuffer, StringBuilder&lt;/h2&gt;
-&lt;h3 id=&quot;string-stringbuffer-stringbuilder三者的区别&quot;&gt;String, StringBuffer, StringBuilder三者的区别&lt;/h3&gt;
+&lt;h1 id=&quot;string-stringbuffer-stringbuilder&quot;&gt;String, StringBuffer, StringBuilder&lt;/h1&gt;
+&lt;h2 id=&quot;string-stringbuffer-stringbuilder三者的区别&quot;&gt;String, StringBuffer, StringBuilder三者的区别&lt;/h2&gt;
 &lt;p&gt;Java字符串处理离不开这三个类。这里总结下这三个类的区别，这里参考了&lt;a href=&quot;http://www.cnblogs.com/A_ming/archive/2010/04/13/1711395.html&quot;&gt;String、StringBuffer与StringBuilder之间区别&lt;/a&gt;。&lt;/p&gt;
 
-&lt;p&gt;#####执行效率
-在执行效率上StringBuilder &amp;gt; StringBuffer &amp;gt; String。但是也有例外，详情见下面的特殊的例子。&lt;/p&gt;
+&lt;h3 id=&quot;执行效率&quot;&gt;执行效率&lt;/h3&gt;
+&lt;p&gt;在执行效率上StringBuilder &amp;gt; StringBuffer &amp;gt; String。但是也有例外，详情见下面的特殊的例子。&lt;/p&gt;
 
-&lt;p&gt;#####可变vs不可变
-这点其实可以解释这三者执行效率的不同。主要原因是String是不可变类（有兴趣的同学可以看看String源码，其值是private final char value[]定义的），其他两个类是可变类。每次对String进行改变时，实际上是创建了新的对象，原来的对象会被GC回收掉。例如下面的代码，在执行第二句后，s实际上已经只想了新的String，其值为”abcd1”，而之前的String对象”abcd”由于没有引用指向它，所以后面会被GC回收。&lt;/p&gt;
+&lt;h3 id=&quot;可变vs不可变&quot;&gt;可变vs不可变&lt;/h3&gt;
+&lt;p&gt;这点其实可以解释这三者执行效率的不同。主要原因是String是不可变类（有兴趣的同学可以看看String源码，其值是private final char value[]定义的），其他两个类是可变类。每次对String进行改变时，实际上是创建了新的对象，原来的对象会被GC回收掉。例如下面的代码，在执行第二句后，s实际上已经只想了新的String，其值为”abcd1”，而之前的String对象”abcd”由于没有引用指向它，所以后面会被GC回收。&lt;/p&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;String s = &quot;abcd&quot;;
 s = s+1;
 System.out.print(s);// result : abcd1
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
-&lt;h5 id=&quot;线程安全vs线程不安全&quot;&gt;线程安全vs线程不安全&lt;/h5&gt;
+&lt;h3 id=&quot;线程安全vs线程不安全&quot;&gt;线程安全vs线程不安全&lt;/h3&gt;
 &lt;p&gt;线程安全：String, StringBuffer。&lt;/p&gt;
 
 &lt;p&gt;线程不安全：StringBuilder。&lt;/p&gt;
 
-&lt;h5 id=&quot;特殊的例子&quot;&gt;特殊的例子&lt;/h5&gt;
+&lt;h3 id=&quot;特殊的例子&quot;&gt;特殊的例子&lt;/h3&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;String str = “This is only a” + “ simple” + “ test”;
 StringBuilder builder = new StringBuilder(&quot;This is only a&quot;).append(&quot; simple&quot;).append(&quot; test&quot;);
 &lt;/code&gt;&lt;/pre&gt;
@@ -79,12 +54,12 @@ String str1 = str2 +str3 + str4;
 &lt;/div&gt;
 &lt;p&gt;这时候JVM会规规矩矩的按照原来的方式去做。&lt;/p&gt;
 
-&lt;h3 id=&quot;如何比较stringbuffer字符串内容相等&quot;&gt;如何比较StringBuffer字符串内容相等&lt;/h3&gt;
+&lt;h2 id=&quot;如何比较stringbuffer字符串内容相等&quot;&gt;如何比较StringBuffer字符串内容相等&lt;/h2&gt;
 &lt;p&gt;大家都知道String在比较内容相等时，用equals方法就行，这是因为String重写了Object的equals方法。但是StringBuffer没有重写equals方法，所以不能用equals来比较。&lt;/p&gt;
 
 &lt;p&gt;所以我们一般用toString()把StringBuffer转换为String，再利用equals来比较。&lt;/p&gt;
 
-&lt;h3 id=&quot;string重载与stringbuilder&quot;&gt;String重载”+”与StringBuilder&lt;/h3&gt;
+&lt;h2 id=&quot;string重载与stringbuilder&quot;&gt;String重载”+”与StringBuilder&lt;/h2&gt;
 &lt;p&gt;在Java中的String类已经重载的”+”。也就是说，字符串可以直接使用”+”进行连接。大家都知道，大量用”+”操作的时候，会产生很多垃圾，所以一般用StringBuilder或者StringBuffer。（这部分参考了Java编程思想的第13章字符串）&lt;/p&gt;
 
 &lt;p&gt;而我们在用javap反编译的时候，发现编译时仍然将”+”转换成StringBuilder。因此，我们可以得出结论，在进行字符串连接时，实际上使用的是StringBuilder类的append()方法。&lt;/p&gt;

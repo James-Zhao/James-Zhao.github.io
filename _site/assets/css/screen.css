@@ -42,10 +42,10 @@
 }
 
 /* Apply these base styles to all icons */
-.icon-ghost:before, 
-.icon-feed:before, 
-.icon-twitter:before, 
-.icon-google-plus:before, 
+.icon-ghost:before,
+.icon-feed:before,
+.icon-twitter:before,
+.icon-google-plus:before,
 .icon-facebook:before {
     font-family: 'icons';
     speak: none;
@@ -58,7 +58,7 @@
     text-decoration: none;
 }
 
-/* Each icon is created by inserting the corret character into the 
+/* Each icon is created by inserting the corret character into the
    content of the :before pseudo element. Like a boss. */
 .icon-ghost:before {
     content: "\e000";
@@ -118,33 +118,33 @@ h4, h5, h6 {
 }
 
 h1 {
-    font-size: 5rem;
+    font-size: 4.2rem;
     line-height: 1.2em;
     letter-spacing: -2px;
     text-indent: -3px;
 }
 
 h2 {
-    font-size: 4rem;
+    font-size: 3rem;
     line-height: 1.2em;
     letter-spacing: -1px;
     text-indent: -2px;
 }
 
 h3 {
-    font-size: 3.5rem;
+    font-size: 1.6rem;
 }
 
 h4 {
-    font-size: 3rem;
+    font-size: 1.6rem;
 }
 
 h5 {
-    font-size: 2.5rem;
+    font-size: 1.6rem;
 }
 
 h6 {
-    font-size: 2rem;
+    font-size: 1.6rem;
 }
 
 a {
@@ -277,8 +277,8 @@ kbd {
     font-weight: bold;
     background: #f4f4f4;
     border-radius: 4px;
-    box-shadow: 
-        0 1px 0 rgba(0, 0, 0, 0.2), 
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.2),
         0 1px 0 0 #fff inset;
 }
 
@@ -415,7 +415,7 @@ margin on the iframe, cause it breaks stuff. */
 .post {
     position: relative;
     width:80%;
-    max-width: 700px;
+    max-width: 900px;
     margin: 4rem auto;
     padding-bottom: 4rem;
     border-bottom: #EBF2F6 1px solid;
@@ -795,9 +795,9 @@ margin on the iframe, cause it breaks stuff. */
     }
 
     .site-head {
-        -webkit-box-sizing: border-box; 
+        -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
-        box-sizing: border-box; 
+        box-sizing: border-box;
         height: auto;
         min-height: 240px;
         padding: 15% 0;
@@ -827,20 +827,20 @@ margin on the iframe, cause it breaks stuff. */
     }
 
     h1 {
-        font-size: 4.8rem;
+        font-size: 3.8rem;
         text-indent: -2px;
     }
 
     h2 {
-        font-size: 3.8rem;
+        font-size: 2.6rem;
     }
 
     h3 {
-        font-size: 3.3rem;
+        font-size: 1.6rem;
     }
 
     h4 {
-        font-size: 2.8rem;
+        font-size: 1rem;
     }
 
 }
@@ -856,7 +856,7 @@ margin on the iframe, cause it breaks stuff. */
         max-height: 80px;
     }
 
-    .inner, 
+    .inner,
     .pagination {
         width: auto;
         margin-left: 16px;

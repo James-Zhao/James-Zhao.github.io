@@ -63,26 +63,26 @@
         <section class="post-content">
             <p>这篇博客是对String的总结，注意，不是系统地讲解String方方面面，想学String的全部知识，看看Java编程思想的字符串这一章就行，这篇博客只是对String一些细节问题的总结。整篇博客会比较零散，我尽量系统地总结好，而且会持续更新。具体引用别人博客的地方，我会附上链接。</p>
 
-<h2 id="string-stringbuffer-stringbuilder">String, StringBuffer, StringBuilder</h2>
-<h3 id="string-stringbuffer-stringbuilder三者的区别">String, StringBuffer, StringBuilder三者的区别</h3>
+<h1 id="string-stringbuffer-stringbuilder">String, StringBuffer, StringBuilder</h1>
+<h2 id="string-stringbuffer-stringbuilder三者的区别">String, StringBuffer, StringBuilder三者的区别</h2>
 <p>Java字符串处理离不开这三个类。这里总结下这三个类的区别，这里参考了<a href="http://www.cnblogs.com/A_ming/archive/2010/04/13/1711395.html">String、StringBuffer与StringBuilder之间区别</a>。</p>
 
-<p>#####执行效率
-在执行效率上StringBuilder &gt; StringBuffer &gt; String。但是也有例外，详情见下面的特殊的例子。</p>
+<h3 id="执行效率">执行效率</h3>
+<p>在执行效率上StringBuilder &gt; StringBuffer &gt; String。但是也有例外，详情见下面的特殊的例子。</p>
 
-<p>#####可变vs不可变
-这点其实可以解释这三者执行效率的不同。主要原因是String是不可变类（有兴趣的同学可以看看String源码，其值是private final char value[]定义的），其他两个类是可变类。每次对String进行改变时，实际上是创建了新的对象，原来的对象会被GC回收掉。例如下面的代码，在执行第二句后，s实际上已经只想了新的String，其值为”abcd1”，而之前的String对象”abcd”由于没有引用指向它，所以后面会被GC回收。</p>
+<h3 id="可变vs不可变">可变vs不可变</h3>
+<p>这点其实可以解释这三者执行效率的不同。主要原因是String是不可变类（有兴趣的同学可以看看String源码，其值是private final char value[]定义的），其他两个类是可变类。每次对String进行改变时，实际上是创建了新的对象，原来的对象会被GC回收掉。例如下面的代码，在执行第二句后，s实际上已经只想了新的String，其值为”abcd1”，而之前的String对象”abcd”由于没有引用指向它，所以后面会被GC回收。</p>
 <div class="highlighter-rouge"><pre class="highlight"><code>String s = "abcd";
 s = s+1;
 System.out.print(s);// result : abcd1
 </code></pre>
 </div>
-<h5 id="线程安全vs线程不安全">线程安全vs线程不安全</h5>
+<h3 id="线程安全vs线程不安全">线程安全vs线程不安全</h3>
 <p>线程安全：String, StringBuffer。</p>
 
 <p>线程不安全：StringBuilder。</p>
 
-<h5 id="特殊的例子">特殊的例子</h5>
+<h3 id="特殊的例子">特殊的例子</h3>
 <div class="highlighter-rouge"><pre class="highlight"><code>String str = “This is only a” + “ simple” + “ test”;
 StringBuilder builder = new StringBuilder("This is only a").append(" simple").append(" test");
 </code></pre>
@@ -104,12 +104,12 @@ String str1 = str2 +str3 + str4;
 </div>
 <p>这时候JVM会规规矩矩的按照原来的方式去做。</p>
 
-<h3 id="如何比较stringbuffer字符串内容相等">如何比较StringBuffer字符串内容相等</h3>
+<h2 id="如何比较stringbuffer字符串内容相等">如何比较StringBuffer字符串内容相等</h2>
 <p>大家都知道String在比较内容相等时，用equals方法就行，这是因为String重写了Object的equals方法。但是StringBuffer没有重写equals方法，所以不能用equals来比较。</p>
 
 <p>所以我们一般用toString()把StringBuffer转换为String，再利用equals来比较。</p>
 
-<h3 id="string重载与stringbuilder">String重载”+”与StringBuilder</h3>
+<h2 id="string重载与stringbuilder">String重载”+”与StringBuilder</h2>
 <p>在Java中的String类已经重载的”+”。也就是说，字符串可以直接使用”+”进行连接。大家都知道，大量用”+”操作的时候，会产生很多垃圾，所以一般用StringBuilder或者StringBuffer。（这部分参考了Java编程思想的第13章字符串）</p>
 
 <p>而我们在用javap反编译的时候，发现编译时仍然将”+”转换成StringBuilder。因此，我们可以得出结论，在进行字符串连接时，实际上使用的是StringBuilder类的append()方法。</p>

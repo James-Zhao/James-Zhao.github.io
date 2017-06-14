@@ -13,8 +13,7 @@ logo: false
 paginate: 15
 permalink: /:title
 
-weibo:
-  username: James-Zhao
+username: James-Zhao
 # Details for the RSS feed generator
 url:            'James-Zhao.github.io'
 author:         'James Zhao'
