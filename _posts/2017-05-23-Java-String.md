@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  my first blog
-date:   2017-01-13 22:17:00
+title:  Java String
+date:   2017-05-23 22:17:00
 ---
 
 这篇博客是对String的总结，注意，不是系统地讲解String方方面面，想学String的全部知识，看看Java编程思想的字符串这一章就行，这篇博客只是对String一些细节问题的总结。整篇博客会比较零散，我尽量系统地总结好，而且会持续更新。具体引用别人博客的地方，我会附上链接。
