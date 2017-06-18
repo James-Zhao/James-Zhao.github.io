@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- Begin Jekyll SEO tag v2.1.0 -->
+<title>PostgreSQL新手入门 - James Zhao</title>
+<meta property="og:title" content="PostgreSQL新手入门" />
+<meta name="description" content="这篇博客主要对PostgreSQL进行总结，内容偏基础。" />
+<meta property="og:description" content="这篇博客主要对PostgreSQL进行总结，内容偏基础。" />
+<link rel="canonical" href="http://localhost:4000//xn--postgresql-379ph63n0hjxh4o" />
+<meta property="og:url" content="http://localhost:4000//xn--postgresql-379ph63n0hjxh4o" />
+<meta property="og:site_name" content="James Zhao" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-05-24T06:17:00+08:00" />
+<script type="application/ld+json">
+{"@context": "http://schema.org",
+"@type": "BlogPosting",
+"headline": "PostgreSQL新手入门",
+"datePublished": "2017-05-24T06:17:00+08:00",
+"description": "这篇博客主要对PostgreSQL进行总结，内容偏基础。",
+"url": "http://localhost:4000//xn--postgresql-379ph63n0hjxh4o"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>James Zhao - The people who are crazy enough to think they can change the world are the ones who do.</title>
+    <meta name="description" content="James Zhao" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+    <!-- This is for syntax highlight -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css">
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="home-template">
+
+
+    <main class="content" role="main">
+
+    <article class="post">
+        <header class="post-header">
+            <a class="blog-logo" style="color: #3A4145"; href="/">
+                
+                    <span class="blog-title">James Zhao</span>
+                
+            </a>
+        </header>
+
+        <span class="post-meta">
+        	<time datetime="2017-05-24">24 May 2017</time>
+        	
+       	</span>
+
+        <h1 class="post-title">PostgreSQL新手入门</h1>
+        <hr />
+
+        <section class="post-content">
+            <p>这篇博客主要对PostgreSQL进行总结，内容偏基础。</p>
+
+<p>这里先附上一个PostgreSQL的中文资源：<a href="http://www.kuqin.com/postgreSQL8.1_doc/">PostgreSQL 8.1 中文文档</a>。英文不好的同学可以看看这个。</p>
+
+<h2 id="安装postgresql">安装PostgreSQL</h2>
+<h5 id="安装postgresql客户端">安装PostgreSQL客户端</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo apt-get install postgresql-client
+</code></pre>
+</div>
+<h5 id="安装postgresql服务器">安装PostgreSQL服务器</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo apt-get install postgresql
+</code></pre>
+</div>
+
+<h5 id="安装图形管理界面">安装图形管理界面</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo apt-get install pgadmin3
+</code></pre>
+</div>
+
+<h2 id="postgresql添加新用户和新数据库">PostgreSQL添加新用户和新数据库</h2>
+<h3 id="方法1postgresql控制台">方法1：PostgreSQL控制台</h3>
+<h5 id="连接数据库">连接数据库</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo su - postgres
+psql -U user -d dbname
+</code></pre>
+</div>
+<p>第一步是切换到postgres用户，第二步是登录到PostgreSQL控制台。当你直接敲psql登录时，实际上是以同名数据库用户的身份登录数据库。</p>
+
+<p>如果一切正常，系统提示符会变为”postgres=#”，表示这时已经进入了数据库控制台。以下的命令都在控制台内完成。</p>
+
+<h5 id="设置系统用户密码">设置系统用户密码</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>\password postgres
+</code></pre>
+</div>
+<p>为postgres用户设置密码，敲下这个命令后，控制台会提示你让你输入新的密码。注意，这里设置的是Linux系统用户postgresql的密码，并非数据库用户的密码。</p>
+
+<h5 id="创建数据库用户">创建数据库用户</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>CREATE USER dbuser WITH PASSWORD 'password';
+</code></pre>
+</div>
+
+<h5 id="创建数据库">创建数据库</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>CREATE DATABASE exampledb OWNER dbuser;
+</code></pre>
+</div>
+<p>创建用户数据库，这里为exampledb，并指定所有者为dbuser。</p>
+
+<h5 id="所有权赋予用户">所有权赋予用户</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>GRANT ALL PRIVILEGES ON DATABASE exampledb to dbuser;
+</code></pre>
+</div>
+
+<h5 id="退出控制台">退出控制台</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>\q
+</code></pre>
+</div>
+<h3 id="方法2使用shell命令行">方法2：使用shell命令行</h3>
+<p>添加新用户和新数据库，除了在PostgreSQL控制台内，还可以在shell命令行下完成。这是因为PostgreSQL提供了命令行程序createuser和createdb。还是以新建用户dbuser和数据库exampledb为例。</p>
+
+<h5 id="创建数据库用户dbuser并指定其为超级用户">创建数据库用户dbuser，并指定其为超级用户。</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo -u postgres createuser --superuser dbuser
+</code></pre>
+</div>
+<h5 id="登录数据库控制台设置dbuser用户的密码完成后退出控制台">登录数据库控制台，设置dbuser用户的密码，完成后退出控制台。</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo -u postgres psql
+\password dbuser
+\q
+</code></pre>
+</div>
+<h5 id="创建数据库exampledb并指定所有者为dbuser">创建数据库exampledb，并指定所有者为dbuser</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo -u postgres createdb -O dbuser exampledb
+</code></pre>
+</div>
+
+<h2 id="登录数据库">登录数据库</h2>
+<p>添加新用户和新数据库以后，就要以新用户的名义登录数据库，这时使用的是psql命令。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>psql -U dbuser -d exampledb -h 127.0.0.1 -p 5432
+</code></pre>
+</div>
+<p>上面命令的参数含义如下：-U指定用户，-d指定数据库，-h指定服务器，-p指定端口。</p>
+
+<p>输入上面命令以后，系统会提示输入dbuser用户的密码。输入正确，就可以登录控制台了。</p>
+
+<h2 id="控制台命令">控制台命令</h2>
+<p>除了前面已经用到的\password命令（设置密码）和\q命令（退出）以外，控制台还提供一系列其他命令。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>\h：查看SQL命令的解释，比如\h select。
+\?：查看psql命令列表。
+\l：列出所有数据库。
+\c [database_name]：连接其他数据库。
+\d：列出当前数据库的所有表格。
+\d [table_name]：列出某一张表格的结构。
+\du：列出所有用户。
+\e：打开文本编辑器。
+\conninfo：列出当前数据库和连接的信息。
+</code></pre>
+</div>
+<h2 id="数据库操作">数据库操作</h2>
+<p>基本的数据库操作，就是使用一般的SQL语言。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code># 创建新表
+CREATE TABLE user_tbl(name VARCHAR(20), signup_date DATE);
+# 插入数据
+INSERT INTO user_tbl(name, signup_date) VALUES('张三', '2013-12-22');
+# 选择记录
+SELECT * FROM user_tbl;
+# 更新数据
+UPDATE user_tbl set name = '李四' WHERE name = '张三';
+# 删除记录
+DELETE FROM user_tbl WHERE name = '李四' ;
+# 添加栏位
+ALTER TABLE user_tbl ADD email VARCHAR(40);
+# 更新结构
+ALTER TABLE user_tbl ALTER COLUMN signup_date SET NOT NULL;
+# 更名栏位
+ALTER TABLE user_tbl RENAME COLUMN signup_date TO signup;
+# 删除栏位
+ALTER TABLE user_tbl DROP COLUMN email;
+# 表格更名
+ALTER TABLE user_tbl RENAME TO backup_tbl;
+# 删除表格
+DROP TABLE IF EXISTS backup_tbl;
+# 给一个字段设置缺省值
+ALTER TABLE [表名] ALTER COLUMN [字段名] SET DEFAULT [新的默认值];
+# 去除缺省值
+ALTER TABLE [表名] ALTER COLUMN [字段名] DROP DEFAULT;
+# 更改字段类型
+ALTER TABLE ALTER COLUMN TYPE;
+</code></pre>
+</div>
+
+<h2 id="处理导出的数据中文显示乱码问题">处理导出的数据中文显示乱码问题</h2>
+<p>PostgreSQL本身提供的copy命令可以将数据导成csv格式。但是在某些Linux环境下导出的csv文件，传输到windows环境下打开中文却显示乱码。</p>
+
+<h3 id="解决方法1">解决方法1</h3>
+<p>一般PostgreSQL建库都是用的UTF8字符集，在UTF8字符集情况下如果中文不能正常显示，可以设置客户端字符集，修改成”GBK” ，命令如下</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>--修改客户端字符集
+postgres=# show client_encoding;
+ client_encoding
+-----------------
+ UTF8
+(1 row)
+
+postgres=# set client_encoding='GBK';
+SET
+
+--copy 导出数据到 GBK 编码类型的 csv 文件
+skytf=# copy skytf.test_2 to '/home/postgres/script/tf/skytf.test_2.csv' with csv header;
+COPY 1000000
+</code></pre>
+</div>
+
+<h3 id="解决方法2">解决方法2</h3>
+<p>iconv是linux命令，用来转换文件的编码的，手册解释如下”Convert encoding of given files from one encoding to another”，我们可以使用iconv命令转换文件的编码，如果 utf8编码的文件中文显示为乱码，可以使用iconv命令将UTF8格式文件转换成gb18030。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>--导出数据到 utf8 编码类型文件。
+skytf=# set client_encoding='UTF8';
+SET
+
+skytf=# show client_encoding;
+ client_encoding
+-----------------
+ UTF8
+(1 row)
+
+skytf=# copy skytf.test_2 to '/home/postgres/script/tf/skytf.test_2.csv' with csv header;
+COPY 1000000
+
+--将文件编码由 utf8 转换成 gb18030
+iconv -f utf-8 -t gb18030 skytf.test_2.csv -o skytf.test_2_gbk.csv
+</code></pre>
+</div>
+
+<h2 id="文件导入导出">文件导入导出</h2>
+<h5 id="文件导出">文件导出</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>\copy table to data.csv  delimiter as ‘,’ csv quote as ‘”‘
+</code></pre>
+</div>
+
+<h5 id="文件导入">文件导入</h5>
+<div class="highlighter-rouge"><pre class="highlight"><code>\copy  table from data.csv delimiter as ‘,’ csv quote as ‘”‘
+</code></pre>
+</div>
+
+<h2 id="参考博客">参考博客</h2>
+<p><a href="http://www.ruanyifeng.com/blog/2013/12/getting_started_with_postgresql.html">PostgreSQL新手入门</a></p>
+
+<p><a href="http://francs3.blog.163.com/blog/static/4057672720120694224195/">PostgreSQL: 如何处理导出的数据中文显示乱码问题？  </a></p>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+        	<!-- If we want to display author's name and bio -->
+            
+                <section class="author">
+                	<header> <a href="/"> <img class="profile" src="/assets/images/profile.png" alt="Author's profile picture"></a></header>
+                	<article>
+                		<!-- Author Name -->
+                    	<h4> James Zhao </h4>
+                    	<!-- Author Bio -->
+                    	<p> Software developer. You can get to know me better on <a href="https://github.com/James-Zhao">GitHub</a>, <a href="http://weibo.com/u/3530157892">Weibo</a>.</p>
+                    </article>
+                </section>
+            
+
+             <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="https://twitter.com/intent/tweet?text=&quot;PostgreSQL新手入门&quot;%20http://localhost:4000/PostgreSQL%E6%96%B0%E6%89%8B%E5%85%A5%E9%97%A8%20via%20&#64;ewertonorg">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/PostgreSQL%E6%96%B0%E6%89%8B%E5%85%A5%E9%97%A8"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://localhost:4000/PostgreSQL%E6%96%B0%E6%89%8B%E5%85%A5%E9%97%A8"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+
+
+
+    <script type="text/javascript" src="/assets/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-46908933-1', 'ewertonorg.github.io');
+      ga('send', 'pageview');
+
+   </script>
+</body>
+</html>
