@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  Python Machine Learning: Scikit-Learn Tutorial
+title:  Scikit-Learn Tutorial
 date:   2017-04-06 22:17:00
 ---
 这是一篇翻译的博客，原文链接在[这里](https://www.datacamp.com/community/blog/scikit-learn-cheat-sheet#gs.BkcjXqk)。这是我看的为数不多的介绍scikit-learn简介而全面的文章，特别适合入门。我这里把这篇文章翻译一下，英语好的同学可以直接看原文。

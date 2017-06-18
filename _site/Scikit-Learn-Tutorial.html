@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- Begin Jekyll SEO tag v2.1.0 -->
+<title>Scikit-Learn Tutorial - James Zhao</title>
+<meta property="og:title" content="Scikit-Learn Tutorial" />
+<meta name="description" content="这是一篇翻译的博客，原文链接在这里。这是我看的为数不多的介绍scikit-learn简介而全面的文章，特别适合入门。我这里把这篇文章翻译一下，英语好的同学可以直接看原文。" />
+<meta property="og:description" content="这是一篇翻译的博客，原文链接在这里。这是我看的为数不多的介绍scikit-learn简介而全面的文章，特别适合入门。我这里把这篇文章翻译一下，英语好的同学可以直接看原文。" />
+<link rel="canonical" href="http://localhost:4000//scikit-learn-tutorial" />
+<meta property="og:url" content="http://localhost:4000//scikit-learn-tutorial" />
+<meta property="og:site_name" content="James Zhao" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-04-07T06:17:00+08:00" />
+<script type="application/ld+json">
+{"@context": "http://schema.org",
+"@type": "BlogPosting",
+"headline": "Scikit-Learn Tutorial",
+"datePublished": "2017-04-07T06:17:00+08:00",
+"description": "这是一篇翻译的博客，原文链接在这里。这是我看的为数不多的介绍scikit-learn简介而全面的文章，特别适合入门。我这里把这篇文章翻译一下，英语好的同学可以直接看原文。",
+"url": "http://localhost:4000//scikit-learn-tutorial"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>James Zhao - The people who are crazy enough to think they can change the world are the ones who do.</title>
+    <meta name="description" content="James Zhao" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Noto+Serif:400,700,400italic|Open+Sans:700,400" />
+    <!-- This is for syntax highlight -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css">
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="home-template">
+
+
+    <main class="content" role="main">
+
+    <article class="post">
+        <header class="post-header">
+            <a class="blog-logo" style="color: #3A4145"; href="/">
+                
+                    <span class="blog-title">James Zhao</span>
+                
+            </a>
+        </header>
+
+        <span class="post-meta">
+        	<time datetime="2017-04-07">07 Apr 2017</time>
+        	
+       	</span>
+
+        <h1 class="post-title">Scikit-Learn Tutorial</h1>
+        <hr />
+
+        <section class="post-content">
+            <p>这是一篇翻译的博客，原文链接在<a href="https://www.datacamp.com/community/blog/scikit-learn-cheat-sheet#gs.BkcjXqk">这里</a>。这是我看的为数不多的介绍scikit-learn简介而全面的文章，特别适合入门。我这里把这篇文章翻译一下，英语好的同学可以直接看原文。</p>
+
+<p>大部分喜欢用Python来学习数据科学的人，应该听过scikit-learn，这个开源的Python库帮我们实现了一系列有关机器学习，数据处理，交叉验证和可视化的算法。其提供的接口非常好用。</p>
+
+<p>这就是为什么DataCamp(原网站)要为那些已经开始学习Python库却没有一个简明且方便的总结的人提供这个总结。（原文是cheat sheet，翻译过来就是小抄，我这里翻译成总结，感觉意思上更积极点）。或者你压根都不知道scikit-learn如何使用，那这份总结将会帮助你快速的了解其相关的基本知识，让你快速上手。</p>
+
+<p>你会发现，当你处理机器学习问题时，scikit-learn简直就是神器。</p>
+
+<p>这份scikit-learn总结将会介绍一些基本步骤让你快速实现机器学习算法，主要包括：读取数据，数据预处理，如何创建模型来拟合数据，如何验证你的模型以及如何调参让模型变得更好。</p>
+
+<p><img src="http://community.datacamp.com.s3.amazonaws.com/community/production/ckeditor_assets/pictures/294/content_button-cheatsheet-scikit_1.png" alt="" /></p>
+
+<p>总的来说，这份总结将会通过示例代码让你开始你的数据科学项目，你能立刻创建模型，验证模型，调试模型。（原文提供了pdf版的下载，内容和原文差不多）</p>
+
+<h2 id="a-basic-example">A Basic Example</h2>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn import neighbors, datasets, preprocessing
+&gt;&gt;&gt; from sklearn.cross_validation import train_test_split
+&gt;&gt;&gt; from sklearn.metrics import accuracy_score
+&gt;&gt;&gt; iris = datasets.load_iris()
+&gt;&gt;&gt; X, y = iris.data[:, :2], iris.target
+&gt;&gt;&gt; X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=33)
+&gt;&gt;&gt; scaler = preprocessing.StandardScaler().fit(X_train)
+&gt;&gt;&gt; X_train = scaler.transform(X_train)
+&gt;&gt;&gt; X_test = scaler.transform(X_test)
+&gt;&gt;&gt; knn = neighbors.KNeighborsClassifier(n_neighbors=5)
+&gt;&gt;&gt; knn.fit(X_train, y_train)
+&gt;&gt;&gt; y_pred = knn.predict(X_test)
+&gt;&gt;&gt; accuracy_score(y_test, y_pred)
+</code></pre>
+</div>
+<p>（补充，这里看不懂不要紧，其实就是个小例子，后面会详细解答）</p>
+
+<h2 id="loading-the-data">Loading The Data</h2>
+<p>你的数据需要是numeric类型，然后存储成numpy数组或者scipy稀疏矩阵。我们也接受其他能转换成numeric数组的类型，比如Pandas的DataFrame。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; X = np.random.random((10,5))
+&gt;&gt;&gt; y = np.array(['M','M','F','F','M','F','M','M','F','F','F'])
+&gt;&gt;&gt; X[X &lt; 0.7] = 0
+</code></pre>
+</div>
+
+<h2 id="preprocessing-the-data">Preprocessing The Data</h2>
+<h3 id="standardization">Standardization</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.preprocessing import StandardScaler
+&gt;&gt;&gt; scaler = StandardScaler().fit(X_train)
+&gt;&gt;&gt; standardized_X = scaler.transform(X_train)
+&gt;&gt;&gt; standardized_X_test = scaler.transform(X_test)
+</code></pre>
+</div>
+<h3 id="normalization">Normalization</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.preprocessing import Normalizer
+&gt;&gt;&gt; scaler = Normalizer().fit(X_train)
+&gt;&gt;&gt; normalized_X = scaler.transform(X_train)
+&gt;&gt;&gt; normalized_X_test = scaler.transform(X_test)
+</code></pre>
+</div>
+<h3 id="binarization">Binarization</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.preprocessing import Binarizer
+&gt;&gt;&gt; binarizer = Binarizer(threshold=0.0).fit(X)
+&gt;&gt;&gt; binary_X = binarizer.transform(X)
+</code></pre>
+</div>
+<h3 id="encoding-categorical-features">Encoding Categorical Features</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.preprocessing import LabelEncoder
+&gt;&gt;&gt; enc = LabelEncoder()
+&gt;&gt;&gt; y = enc.fit_transform(y)
+</code></pre>
+</div>
+<h3 id="imputing-missing-values">Imputing Missing Values</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt;from sklearn.preprocessing import Imputer
+&gt;&gt;&gt;imp = Imputer(missing_values=0, strategy='mean', axis=0)
+&gt;&gt;&gt;imp.fit_transform(X_train)
+</code></pre>
+</div>
+<h3 id="generating-polynomial-features">Generating Polynomial Features</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.preprocessing import PolynomialFeatures)
+&gt;&gt;&gt; poly = PolynomialFeatures(5))
+&gt;&gt;&gt; oly.fit_transform(X))
+</code></pre>
+</div>
+
+<h2 id="training-and-test-data">Training And Test Data</h2>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.cross_validation import train_test_split)
+&gt;&gt;&gt; X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=0))
+</code></pre>
+</div>
+
+<h2 id="create-your-model">Create Your Model</h2>
+<h3 id="supervised-learning-estimators">Supervised Learning Estimators</h3>
+<h3 id="linear-regression">Linear Regression</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.linear_model import LinearRegression)
+&gt;&gt;&gt; lr = LinearRegression(normalize=True))
+
+</code></pre>
+</div>
+<h3 id="support-vector-machines-svm">Support Vector Machines (SVM)</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.svm import SVC)
+&gt;&gt;&gt; svc = SVC(kernel='linear'))
+</code></pre>
+</div>
+<h3 id="naive-bayes">Naive Bayes</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.naive_bayes import GaussianNB)
+&gt;&gt;&gt; gnb = GaussianNB())
+</code></pre>
+</div>
+<h3 id="knn">KNN</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn import neighbors)
+&gt;&gt;&gt; knn = neighbors.KNeighborsClassifier(n_neighbors=5))
+</code></pre>
+</div>
+
+<h3 id="unsupervised-learning-estimators">Unsupervised Learning Estimators</h3>
+<h3 id="principal-component-analysis-pca">Principal Component Analysis (PCA)</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.decomposition import PCA)
+&gt;&gt;&gt; pca = PCA(n_components=0.95))
+</code></pre>
+</div>
+<h3 id="k-means">K Means</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.cluster import KMeans)
+&gt;&gt;&gt; k_means = KMeans(n_clusters=3, random_state=0))
+</code></pre>
+</div>
+<h2 id="model-fitting">Model Fitting</h2>
+<h3 id="supervised-learning">Supervised learning</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; lr.fit(X, y))
+&gt;&gt;&gt; knn.fit(X_train, y_train))
+&gt;&gt;&gt; svc.fit(X_train, y_train))
+</code></pre>
+</div>
+<h3 id="unsupervised-learning">Unsupervised Learning</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; k_means.fit(X_train))
+&gt;&gt;&gt; pca_model = pca.fit_transform(X_train))
+</code></pre>
+</div>
+
+<h2 id="prediction">Prediction</h2>
+<h3 id="supervised-estimators">Supervised Estimators</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; y_pred = svc.predict(np.random.random((2,5))))
+</code></pre>
+</div>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; y_pred = lr.predict(X_test))
+</code></pre>
+</div>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; y_pred = knn.predict_proba(X_test))
+</code></pre>
+</div>
+<h3 id="unsupervised-estimators">Unsupervised Estimators</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; y_pred = k_means.predict(X_test))
+</code></pre>
+</div>
+
+<h2 id="evaluate-your-models-performance">Evaluate Your Model’s Performance</h2>
+<h3 id="classification-metrics">Classification Metrics</h3>
+<h3 id="accuracy-score">Accuracy Score</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; knn.score(X_test, y_test))
+&gt;&gt;&gt; from sklearn.metrics import accuracy_score)
+&gt;&gt;&gt; accuracy_score(y_test, y_pred))
+</code></pre>
+</div>
+
+<h3 id="classification-report">Classification Report</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import classification_report)
+&gt;&gt;&gt; print(classification_report(y_test, y_pred)))
+</code></pre>
+</div>
+
+<h3 id="confusion-matrix">Confusion Matrix</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import confusion_matrix)
+&gt;&gt;&gt; print(confusion_matrix(y_test, y_pred)))
+</code></pre>
+</div>
+<h3 id="regression-metrics">Regression Metrics</h3>
+<h3 id="mean-absolute-error">Mean Absolute Error</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import mean_absolute_error)
+&gt;&gt;&gt; y_true = [3, -0.5, 2])
+&gt;&gt;&gt; mean_absolute_error(y_true, y_pred))
+</code></pre>
+</div>
+
+<h3 id="mean-squared-error">Mean Squared Error</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import mean_squared_error)
+&gt;&gt;&gt; mean_squared_error(y_test, y_pred))
+</code></pre>
+</div>
+<h3 id="r2-score">R2 Score</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import r2_score)
+&gt;&gt;&gt; r2_score(y_true, y_pred))
+</code></pre>
+</div>
+
+<h3 id="clustering-metrics">Clustering Metrics</h3>
+<h3 id="adjusted-rand-index">Adjusted Rand Index</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import adjusted_rand_score)
+&gt;&gt;&gt; adjusted_rand_score(y_true, y_pred))
+</code></pre>
+</div>
+<h3 id="homogeneity">Homogeneity</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import homogeneity_score)
+&gt;&gt;&gt; homogeneity_score(y_true, y_pred))
+</code></pre>
+</div>
+<h3 id="v-measure">V-measure</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.metrics import v_measure_score)
+&gt;&gt;&gt; metrics.v_measure_score(y_true, y_pred))
+</code></pre>
+</div>
+<h3 id="cross-validation">Cross-Validation</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; print(cross_val_score(knn, X_train, y_train, cv=4))
+&gt;&gt;&gt; print(cross_val_score(lr, X, y, cv=2))
+</code></pre>
+</div>
+
+<h2 id="tune-your-model">Tune Your Model</h2>
+<h3 id="grid-search">Grid Search</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.grid_search import GridSearchCV
+&gt;&gt;&gt; params = {"n_neighbors": np.arange(1,3), "metric": ["euclidean", "cityblock"]}
+&gt;&gt;&gt; grid = GridSearchCV(estimator=knn,param_grid=params)
+&gt;&gt;&gt; grid.fit(X_train, y_train)
+&gt;&gt;&gt; print(grid.best_score_)
+&gt;&gt;&gt; print(grid.best_estimator_.n_neighbors)
+</code></pre>
+</div>
+<h3 id="randomized-parameter-optimization">Randomized Parameter Optimization</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>&gt;&gt;&gt; from sklearn.grid_search import RandomizedSearchCV
+&gt;&gt;&gt; params = {"n_neighbors": range(1,5), "weights": ["uniform", "distance"]}
+&gt;&gt;&gt; rsearch = RandomizedSearchCV(estimator=knn,
+   param_distributions=params,
+   cv=4,
+   n_iter=8,
+   random_state=5)
+&gt;&gt;&gt; rsearch.fit(X_train, y_train)
+&gt;&gt;&gt; print(rsearch.best_score_)
+</code></pre>
+</div>
+
+<h2 id="going-further">Going Further</h2>
+<p>学习完上面的例子后，你可以通过<a href="https://www.datacamp.com/community/tutorials/machine-learning-python#gs.mDi3ekM">our scikit-learn tutorial for beginners</a>来学习更多的例子。另外你可以学习matplotlib来可视化数据。</p>
+
+<p>不要错过后续教程 <a href="https://www.datacamp.com/community/blog/bokeh-cheat-sheet-python">Bokeh cheat sheet</a>, <a href="https://www.datacamp.com/community/blog/python-pandas-cheat-sheet#gs.0dYnfNg">the Pandas cheat sheet</a> or <a href="https://www.datacamp.com/community/tutorials/python-data-science-cheat-sheet-basics#gs.Eekdm2k">the Python cheat sheet for data science</a>.</p>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+        	<!-- If we want to display author's name and bio -->
+            
+                <section class="author">
+                	<header> <a href="/"> <img class="profile" src="/assets/images/profile.png" alt="Author's profile picture"></a></header>
+                	<article>
+                		<!-- Author Name -->
+                    	<h4> James Zhao </h4>
+                    	<!-- Author Bio -->
+                    	<p> Software developer. You can get to know me better on <a href="https://github.com/James-Zhao">GitHub</a>, <a href="http://weibo.com/u/3530157892">Weibo</a>.</p>
+                    </article>
+                </section>
+            
+
+             <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="https://twitter.com/intent/tweet?text=&quot;Scikit-Learn Tutorial&quot;%20http://localhost:4000/Scikit-Learn-Tutorial%20via%20&#64;ewertonorg">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/Scikit-Learn-Tutorial"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://localhost:4000/Scikit-Learn-Tutorial"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+
+
+
+    <script type="text/javascript" src="/assets/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-46908933-1', 'ewertonorg.github.io');
+      ga('send', 'pageview');
+
+   </script>
+</body>
+</html>

@@ -5,34 +5,441 @@
     <description>The people who are crazy enough to think they can change the world are the ones who do.</description>
     <link>http://localhost:4000//</link>
     <atom:link href="http://localhost:4000//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 14 Jun 2017 23:22:55 +0800</pubDate>
-    <lastBuildDate>Wed, 14 Jun 2017 23:22:55 +0800</lastBuildDate>
+    <pubDate>Sun, 18 Jun 2017 23:13:29 +0800</pubDate>
+    <lastBuildDate>Sun, 18 Jun 2017 23:13:29 +0800</lastBuildDate>
     <generator>Jekyll v3.3.1</generator>
     
       <item>
-        <title>my first blog</title>
+        <title>Java垃圾回收</title>
+        <description>&lt;p&gt;这篇博客是对Java垃圾回收的总结，主要是对&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-introduction/&quot;&gt;Java Garbage Collection Introduction&lt;/a&gt;以及后续的三篇博客的翻译。我把这四篇博客翻译到这一篇博客里，把参考的其他博客的链接附在文章末尾。&lt;/p&gt;
+
+&lt;h2 id=&quot;java-garbage-collection-introduction&quot;&gt;Java Garbage Collection Introduction&lt;/h2&gt;
+&lt;p&gt;在Java中，分配和回收对象的内存空间是在JVM中、由垃圾回收机制自动完成的。不像C语言，使用Java的开发人员不需要写代码来进行垃圾回收。Java之所以如此流行以及能够帮助程序员更好的开发，这是其中一个原因。&lt;/p&gt;
+
+&lt;p&gt;这个系列一共有四篇博客来介绍Java的垃圾回收，分别是：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-introduction/&quot;&gt;Java Garbage Collection Introduction&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://javapapers.com/java/how-java-garbage-collection-works/&quot;&gt;How Java Garbage Collection Works?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://javapapers.com/java/types-of-java-garbage-collectors/&quot;&gt;Types of Java Garbage Collectors&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-monitoring-and-analysis/&quot;&gt;Java Garbage Collection Monitoring and Analysis&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;这一节是这篇博客的第一部分。主要内容是解释一些基础的术语，比如JDK, JVM, JRE, HotSpot VM，然后理解JVM的整体架构和Java堆内存结构。理解这些概念对学习Java垃圾回收很有帮助。&lt;/p&gt;
+
+&lt;h3 id=&quot;key-java-terminologies&quot;&gt;Key Java Terminologies&lt;/h3&gt;
+&lt;p&gt;Java API：Java API是帮助程序员进行Java开发的一系列封装库的集合。&lt;/p&gt;
+
+&lt;p&gt;Java Development Kit (JDK)：JDK是一套帮助程序员进行Java开发的工具，这些工具主要是进行编译、运行、打包、分配和监视Java程序。&lt;/p&gt;
+
+&lt;p&gt;Java Virtual Machine (JVM)：JVM是一个抽象的计算机。Java程序是针对JVM规范来写的。对不同的操作系统来说，JVM有所不同，它主要作用是把Java指令翻译为操作系统的指令，并且执行它们。JVM能够保证Java代码独立于平台。&lt;/p&gt;
+
+&lt;p&gt;Java Runtime Environment (JRE)：JRE包括JVM实现和Java API。&lt;/p&gt;
+
+&lt;h3 id=&quot;java-hotspot-virtual-machine&quot;&gt;Java HotSpot Virtual Machine&lt;/h3&gt;
+&lt;p&gt;不同的JVM在垃圾回收的实现上可能有点不一样。 在SUN被收购之前，Oracle有JRockit JVM，并且在SUN收购之后，Oracle获得了HotSpot JVM。目前Oracle维护了两个JVM实现，并且已经声明，在一段时间内这两个JVM实现将被合并到一个。&lt;/p&gt;
+
+&lt;p&gt;HotSpot JVM是标准Oracle SE平台的核心组件。在这个垃圾回收教程中，我们将看到基于HotSpot虚拟机的垃圾回收原理。&lt;/p&gt;
+
+&lt;h3 id=&quot;jvm-architecture&quot;&gt;JVM Architecture&lt;/h3&gt;
+&lt;p&gt;下图总结了JVM的关键组件。在JVM架构中，两个主要涉及到垃圾回收的组件是堆内存(heap memory)和垃圾回收器(garbage collector)。堆内存是运行时数据所在的区域，这个区域存着对象实例，垃圾回收器也在这个区域内操作。我们现在看看这些东西如何适应到更大的方案。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/798143/201706/798143-20170603114328118-672196757.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;runtime-data-area&quot;&gt;Runtime Data Area&lt;/h3&gt;
+&lt;p&gt;正如虚拟机规范所说的那样，JVM中的内存分为5个虚拟的区域:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Method Area：也被称为非堆区域(在HotSpot JVM的实现当中)。它被分为两个主要的子区域：持久代和代码缓存。前者会存储包括类定义，结构，字段，方法(数据及代码)以及常量在内的类相关数据。后者是用来存储编译后的代码。编译后的代码就是本地代码，它是由JIT编译器生成的，这个编译器是Oracle HotSpot JVM所特有的。&lt;/li&gt;
+  &lt;li&gt;Heap Memory：后续会详细介绍。&lt;/li&gt;
+  &lt;li&gt;Java Stacks：和Java类中的方法密切相关，它会存储局部变量以及方法调用的中间结果及返回值，Java中的每个线程都有自己专属的栈，这个栈是别的线程无法访问的。&lt;/li&gt;
+  &lt;li&gt;PC Registers：特定线程的程序计数器，包含JVM正在执行的指令的地址(如果是本地方法的话它的值则未定义)&lt;/li&gt;
+  &lt;li&gt;Native Method Stack：用于本地方法(非Java代码)，按线程分配&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;java-heap-memory&quot;&gt;Java Heap Memory&lt;/h3&gt;
+&lt;p&gt;理解Java Heap Memory在JVM模型中的角色很重要。在运行期间，Java实例保存在heap memory区域。当一个对象没有引用指向它时，它就需要从内存里被清除。在垃圾回收的过程中，这些对象在heap memory里被清除，然后这些空间能够再被利用。heap memory主要有三个区域：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;年轻代。年轻代分三个区：Eden区（任何进去内存区域的对象实例都要经过eden区）、Survivor0区（从eden区过来S0区的、稍微老一点的对象）、Survivor1区（从S0区过来、稍微老一点的对象）&lt;/li&gt;
+  &lt;li&gt;年老代。这个区主要是从S1过来的对象。&lt;/li&gt;
+  &lt;li&gt;持久代。这个区包含一些元数据信息比如，类、方法等。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;更新：持久代区域已经从Java SE 8移除。取代它的是另一个内存区域也被称为元空间(本地堆内存中的一部分)。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/798143/201706/798143-20170603115520993-468351782.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;how-java-garbage-collection-works&quot;&gt;How Java Garbage Collection Works?&lt;/h2&gt;
+&lt;p&gt;这个系列博客主要是帮助理解Java回收的基本概念以及其如何工作。这部分是这个系列的第二部分，希望你有阅读过第一部分&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-introduction/&quot;&gt;Java Garbage Collection Introduction&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;Java垃圾回收是一个自动处理的过程，目的是管理程序运行时的内存问题。通过这种方式，JVM能够自动减轻程序员在分配和释放内存资源的问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;java-garbage-collection-gc-initiation&quot;&gt;Java Garbage Collection GC Initiation&lt;/h3&gt;
+&lt;p&gt;垃圾回收作为一个自动的过程，程序员不用在代码里显式地启动垃圾回收机制。System.gc()和Runtime.gc()能够显式地让JVM执行垃圾回收过程。&lt;/p&gt;
+
+&lt;p&gt;虽然这个机制能够让程序员启动垃圾回收，但是这个责任还是在JVM上。JVM能够选择拒绝你的请求，所以我们没法保证这两个命令肯定会执行垃圾回收。JVM会通过eden区的可用内存来判断是否执行垃圾回收。JVM规范把这个选择留给了JVM的具体实现，所以这些实现的细节对不同的JVM来说也不一样。&lt;/p&gt;
+
+&lt;p&gt;毫无疑问的是，垃圾回收机制不能强制执行。我刚刚发现了一个调用System.gc()的应用场景，看这篇文章就知道什么时候&lt;a href=&quot;http://javapapers.com/core-java/system-gc-invocation-a-suitable-scenario/&quot;&gt;调用System.gc()是合适的&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;java-garbage-collection-process&quot;&gt;Java Garbage Collection Process&lt;/h3&gt;
+&lt;p&gt;垃圾回收是这样一个过程：回收不再使用的内存空间，让这些空间能够被将来的实例对象所用。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/798143/201706/798143-20170603210309758-1962301044.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;eden-space&quot;&gt;Eden Space&lt;/h4&gt;
+&lt;p&gt;当一个实例被创建的时候，它首先存在堆内存区域的年轻代的eden区。&lt;/p&gt;
+
+&lt;p&gt;注意：假如你不懂这些术语，建议你去读&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-introduction/&quot;&gt;Java Garbage Collection Introduction&lt;/a&gt;，这篇博客把内存模型、JVM架构和一些专业术语解释的很详细。&lt;/p&gt;
+
+&lt;h4 id=&quot;survivor-space-s0-and-s1&quot;&gt;Survivor Space (S0 and S1)&lt;/h4&gt;
+&lt;p&gt;作为次要垃圾回收(minor GC)周期的一部分，那些仍然被引用的对象会从eden区被搬到survivor的S0区。同样的过程，垃圾回收器会扫描S0区，然后把实例搬到S1区。&lt;/p&gt;
+
+&lt;p&gt;那些没有被引用的对象会被标记。通过不同的垃圾回收器(一共有四类垃圾回收器，后续的教程会讲这个)来决定这些被标记的对象在内存中被移除还是在单独的进程中来完成。&lt;/p&gt;
+
+&lt;h4 id=&quot;old-generation&quot;&gt;Old Generation&lt;/h4&gt;
+&lt;p&gt;年老代或者持久代是堆内存中的第二个逻辑部分。当垃圾回收器执行次要垃圾回收周期的时候，那些仍在S1区存活的实例将被移到年老代，S1区域中没有被引用的实例将会被标记以便清除。&lt;/p&gt;
+
+&lt;h4 id=&quot;major-gc&quot;&gt;Major GC&lt;/h4&gt;
+&lt;p&gt;在垃圾回收的过程中，年老代是实例对象生命周期的最后一个环节。Major GC是扫描年老代的堆内存的垃圾回收过程。如果有对象没有被引用，那它们将被标记以便清除，如果有被引用，那它们将继续留在年老代。&lt;/p&gt;
+
+&lt;h4 id=&quot;memory-fragmentation&quot;&gt;Memory Fragmentation&lt;/h4&gt;
+&lt;p&gt;一旦实例对象在堆内存中被删除，那它们所占的区域就又可以被将来的实例对象使用。这些空的区域在内存中将会形成很多碎片。为了更快的为实例分配内存，我们应该解决这个碎片问题。根据不同垃圾回收器的选择，被回收的内存将在回收的过程同时或者在GC另外独立的过程中压缩整合。&lt;/p&gt;
+
+&lt;h3 id=&quot;finalization-of-instances-in-garbage-collection&quot;&gt;Finalization of Instances in Garbage Collection&lt;/h3&gt;
+&lt;p&gt;就在清除一个对象并回收它的内存空间之前，垃圾回收器将会调用各个实例的finalize()方法，这样实例对象就有机会可以释放掉它占用的资源。尽管finalize()方法是保证在回收内存空间之前执行的，但是对具体的执行时间和执行顺序是没有任何保证的。多个实例之间的finalize()执行顺序是不能提前预知的，甚至有可能它们是并行执行的。程序不应该预先假设实例执行finalize()的顺序，也不应该使用finalize()方法来回收资源。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在finalize过程中抛出的任何异常都默认被忽略掉了，同时该对象的销毁过程被取消&lt;/li&gt;
+  &lt;li&gt;JVM规范并没有讨论关于弱引用的垃圾回收，并且是明确声明的。具体的细节留给实现者决定。&lt;/li&gt;
+  &lt;li&gt;垃圾回收是由守护进程执行的&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;when-an-object-becomes-eligible-for-garbage-collection&quot;&gt;When an object becomes eligible for garbage collection?&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;任何不能被活着的线程用到的实例&lt;/li&gt;
+  &lt;li&gt;不能被其他对象用到的循环引用对象&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Java中有&lt;a href=&quot;http://javapapers.com/core-java/java-weak-reference/&quot;&gt;多种不同的引用类型&lt;/a&gt;。实例的可回收性取决于它的引用类型。&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;引用&lt;/th&gt;
+      &lt;th&gt;垃圾回收&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;强引用&lt;/td&gt;
+      &lt;td&gt;不适合被垃圾回收&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;软引用&lt;/td&gt;
+      &lt;td&gt;可能会被回收，但是是在最后被回收&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;弱引用&lt;/td&gt;
+      &lt;td&gt;适合被回收&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;虚引用&lt;/td&gt;
+      &lt;td&gt;适合被回收&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;在编译期间，Java编译器有优化技术来选择把null值赋给一个实例，从而把这个实例标记为可回收。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class Animal {
+    public static void main(String[] args) {
+        Animal lion = new Animal();
+        System.out.println(&quot;Main is completed.&quot;);
+    }
+
+    protected void finalize() {
+        System.out.println(&quot;Rest in Peace!&quot;);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在上面的类中，lion实例在初始化后就没被用过了，所以Java编译器在lion实例化后把lion赋值为null而作为一个优化的手段。这样finlizer方法可能会在Main方法之前打印结果。我们不能确定地保证结果，因为这和JVM的具体实现以及运行时的内存有关。但是我们能知道的一点是：编译器发现一个实例在之后的程序中不再被引用时可以选择提前释放实例的内存。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;这里有个实例何时变成可回收更好的例子。实例所有的属性可以被存储在寄存器中，之后可以从寄存器中读取这些属性值。在任何情况下，这些值将来都不会被写回到实例对象中。尽管这些值在未来还是被使用到了，但是实例对象依然可以被标记为可回收的。（注：这个例子我没看懂）&lt;/li&gt;
+  &lt;li&gt;我们可以简单地认为，当一个实例被赋值为null时就可以被回收。我们也可以像上面提到的、复杂地考虑这个问题。这些都是由JVM的具体实现决定的。其目标都是希望留下最少的痕迹、提高响应性能和增大吞吐量。为了能够达到这些目的，JVM实现者可以在垃圾回收中选择更好的模式或算法来回收内存。&lt;/li&gt;
+  &lt;li&gt;当finalize()被调用的时候，JVM释放掉当前线程的所有同步块。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;example-program-for-gc-scope&quot;&gt;Example Program for GC Scope&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Class GCScope {
+	GCScope t;
+	static int i = 1;
+
+	public static void main(String args[]) {
+		GCScope t1 = new GCScope();
+		GCScope t2 = new GCScope();
+		GCScope t3 = new GCScope();
+
+		// No Object Is Eligible for GC
+
+		t1.t = t2; // No Object Is Eligible for GC
+		t2.t = t3; // No Object Is Eligible for GC
+		t3.t = t1; // No Object Is Eligible for GC
+
+		t1 = null;
+		// No Object Is Eligible for GC (t3.t still has a reference to t1)
+
+		t2 = null;
+		// No Object Is Eligible for GC (t3.t.t still has a reference to t2)
+
+		t3 = null;
+		// All the 3 Object Is Eligible for GC (None of them have a reference.
+		// only the variable t of the objects are referring each other in a
+		// rounded fashion forming the Island of objects with out any external
+		// reference)
+	}
+
+	protected void finalize() {
+		System.out.println(&quot;Garbage collected from object&quot; + i);
+		i++;
+	}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;example-program-for-gc-outofmemoryerror&quot;&gt;Example Program for GC OutOfMemoryError&lt;/h3&gt;
+&lt;p&gt;垃圾回收不保证内存的安全问题，粗心的代码会造成内存溢出。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import java.util.LinkedList;
+import java.util.List;
+
+public class GC {
+	public static void main(String[] main) {
+		List l = new LinkedList();
+		// Enter infinite loop which will add a String to the list: l on each
+		// iteration.
+		do {
+			l.add(new String(&quot;Hello, World&quot;));
+		} while (true);
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;输出为&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Exception in thread &quot;main&quot; java.lang.OutOfMemoryError: Java heap space
+	at java.util.LinkedList.linkLast(LinkedList.java:142)
+	at java.util.LinkedList.add(LinkedList.java:338)
+	at com.javapapers.java.GCScope.main(GCScope.java:12)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;types-of-java-garbage-collectors&quot;&gt;Types of Java Garbage Collectors&lt;/h2&gt;
+&lt;p&gt;在这个教程中，我们将学习各种各样的垃圾回收器。Java垃圾回收是一个自动处理的过程，目的是管理程序运行时的内存问题。这是这个系列教程的第三部分，在前面两个部分，我们学习了&lt;a href=&quot;http://javapapers.com/java/how-java-garbage-collection-works/&quot;&gt;How Java Garbage Collection Works&lt;/a&gt;，这部分很有意思，我建议你完整读一遍。而第一部分&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-introduction/&quot;&gt;Java Garbage Collection Introduction&lt;/a&gt;中，我们学习了JVM的架构、堆内存模型和Java相关的术语。&lt;/p&gt;
+
+&lt;p&gt;Java有四种垃圾回收器：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Serial Garbage Collector&lt;/li&gt;
+  &lt;li&gt;Parallel Garbage Collector&lt;/li&gt;
+  &lt;li&gt;CMS Garbage Collector&lt;/li&gt;
+  &lt;li&gt;G1 Garbage Collector&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://images2015.cnblogs.com/blog/798143/201706/798143-20170604100113180-430238765.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这四种垃圾回收器各有自己的利弊。更重要的是，我们程序员可以选择JVM用哪种垃圾回收器。我们一般是通过设置JVM参数来选择垃圾回收器。各个垃圾回收器在不同应用场景下的效率会有很大的差异。因此了解各种不同类型的垃圾回收器以及它们的应用场景是非常重要的。&lt;/p&gt;
+
+&lt;h3 id=&quot;serial-garbage-collector&quot;&gt;Serial Garbage Collector&lt;/h3&gt;
+&lt;p&gt;串行垃圾回收器控制所有的应用线程。它是为单线程环境设计的，只使用一个线程来执行垃圾回收工作。它的工作方式是暂停所有应用线程来执行垃圾回收工作，这种方式不适用于服务器的应用环境。它最适用的是简单的命令行程序。&lt;/p&gt;
+
+&lt;p&gt;使用-XX:+UseSerialGC JVM参数来开启使用串行垃圾回收器。&lt;/p&gt;
+
+&lt;h3 id=&quot;parallel-garbage-collector&quot;&gt;Parallel Garbage Collector&lt;/h3&gt;
+&lt;p&gt;并行垃圾回收器也称作基于吞吐量的回收器。它是JVM的默认垃圾回收器。与Serial垃圾回收器不同的是，它使用多个线程来执行垃圾回收工作。和Serial回收器一样，它在执行垃圾回收工作是也需要暂停所有应用线程。&lt;/p&gt;
+
+&lt;h3 id=&quot;cms-garbage-collector&quot;&gt;CMS Garbage Collector&lt;/h3&gt;
+&lt;p&gt;并发标记清除(Concurrent Mark Sweep,CMS)垃圾回收器，使用多个线程来扫描堆内存并标记可被清除的对象，然后清除标记的对象。CMS垃圾回收器只在下面这两种情形下暂停工作线程：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;在老年代中标记引用对象的时候&lt;/li&gt;
+  &lt;li&gt;在并行垃圾回收的过程中堆内存中有变化发生&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;对比与并行垃圾回收器，CMS回收器使用更多的CPU来保证更高的吞吐量。如果我们可以有更多的CPU用来提升性能，那么CMS垃圾回收器是比并行回收器更好的选择。&lt;/p&gt;
+
+&lt;p&gt;使用-XX:+UseParNewGC JVM参数来开启使用CMS垃圾回收器。&lt;/p&gt;
+
+&lt;h3 id=&quot;g1-garbage-collector&quot;&gt;G1 Garbage Collector&lt;/h3&gt;
+&lt;p&gt;G1垃圾回收器应用于大的堆内存空间。它将堆内存空间划分为不同的区域，对各个区域并行地做回收工作。G1在回收内存空间后还立即堆空闲空间做整合工作以减少碎片。CMS却是在全部停止(stop the world,STW)时执行内存整合工作。G1会根据各个区域的垃圾数量来对区域评判优先级。&lt;/p&gt;
+
+&lt;p&gt;使用-XX:UseG1GC JVM参数来开启使用G1垃圾回收器。&lt;/p&gt;
+
+&lt;h4 id=&quot;java-8-improvement&quot;&gt;Java 8 Improvement&lt;/h4&gt;
+&lt;p&gt;在使用G1垃圾回收器时，开启使用-XX:+UseStringDeduplacaton JVM参数。它会通过把重复的String值移动到同一个char[]数组来优化堆内存占用。这是Java 8 u 20引入的选项。&lt;/p&gt;
+
+&lt;p&gt;以上给出的四个Java垃圾回收器，在什么时候使用哪一个取决于应用场景，硬件配置和吞吐量要求。&lt;/p&gt;
+
+&lt;h3 id=&quot;garbage-collection-jvm-options&quot;&gt;Garbage Collection JVM Options&lt;/h3&gt;
+&lt;p&gt;下面是与Java垃圾回收相关、比较重要的JVM选项。&lt;/p&gt;
+
+&lt;h4 id=&quot;type-of-garbage-collector-to-run&quot;&gt;Type of Garbage Collector to run&lt;/h4&gt;
+&lt;p&gt;选项 | 描述
+—-|——
+-XX:+UseSerialGC|Serial Garbage Collector
+-XX:+UseParallelGC|Parallel Garbage Collector
+-XX:+UseConcMarkSweepGC|CMS Garbage Collector
+-XX:ParallelCMSThreads=|CMS Collector – number of threads to use
+-XX:+UseG1GC|G1 Gargbage Collector&lt;/p&gt;
+
+&lt;h4 id=&quot;gc-optimization-options&quot;&gt;GC Optimization Options&lt;/h4&gt;
+&lt;p&gt;选项 | 描述
+—-|——
+-Xms|Initial heap memory size
+-Xmx|Maximum heap memory size
+-Xmn|Size of Young Generation
+-XX:PermSize|Initial Permanent Generation size
+-XX:MaxPermSize|Maximum Permanent Generation size&lt;/p&gt;
+
+&lt;h4 id=&quot;example-usage-of-jvm-gc-options&quot;&gt;Example Usage of JVM GC Options&lt;/h4&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;java -Xmx12m -Xms3m -Xmn1m -XX:PermSize=20m -XX:MaxPermSize=20m -XX:+UseSerialGC -jar java-application.jar
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;java-garbage-collection-monitoring-and-analysis&quot;&gt;Java Garbage Collection Monitoring and Analysis&lt;/h2&gt;
+&lt;p&gt;这篇教程主要介绍垃圾回收机制的监控和分析，我们会用到一个工具来监控一个Java应用的垃圾回收过程。如果你是一个新手，你最好把这系列博客的前几篇都看一下，你可以从&lt;a href=&quot;http://javapapers.com/java/java-garbage-collection-introduction/&quot;&gt;Java Garbage Collection Introduction&lt;/a&gt;开始。&lt;/p&gt;
+
+&lt;h3 id=&quot;java-garbage-collection-monitoring-and-analysis-tools&quot;&gt;Java Garbage collection monitoring and analysis tools&lt;/h3&gt;
+&lt;p&gt;下面说的工具各自都有利弊，我们可以通过选择合适的工具来进行分析以此提高Java应用的性能。我们这篇教程主要用Java VisualVM。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Java VisualVM&lt;/li&gt;
+  &lt;li&gt;Naarad&lt;/li&gt;
+  &lt;li&gt;GCViewer&lt;/li&gt;
+  &lt;li&gt;IBM Pattern Modeling and Analysis Tool for Java Garbage Collector&lt;/li&gt;
+  &lt;li&gt;HPjmeter&lt;/li&gt;
+  &lt;li&gt;IBM Monitoring and Diagnostic Tools for Java – Garbage Collection and Memory&lt;/li&gt;
+  &lt;li&gt;Visualizer&lt;/li&gt;
+  &lt;li&gt;Verbose GC Analyzer&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;java-visualvm&quot;&gt;Java VisualVM&lt;/h3&gt;
+&lt;p&gt;Java VisualVM可以通过Java SE SDK来免费安装使用。看看你的Java JDK安装路径，就在\Java\jdk1.8.0\bin路径下。当然还有很多其他的工具，jvisualvm只是其中之一。&lt;/p&gt;
+
+&lt;p&gt;Java VisualVM提供了一个包含Java程序信息的可视化接口。它包含很多其他的工具且集成到这一个。现在像JConsole, jstat, jinfo, jstack, and jmap都被集成到Java VisualVM中了。&lt;/p&gt;
+
+&lt;p&gt;Java VisualVM主要用来：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;generate and analyze heap memory dumps&lt;/li&gt;
+  &lt;li&gt;view and operate on MBeans&lt;/li&gt;
+  &lt;li&gt;monitor garbage collection&lt;/li&gt;
+  &lt;li&gt;memory and CPU profiling&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;launch-visualvm&quot;&gt;Launch VisualVM&lt;/h4&gt;
+&lt;p&gt;JDK目录下就有Java VisualVM。&lt;/p&gt;
+
+&lt;h4 id=&quot;install-visual-gc-plugin&quot;&gt;Install Visual GC Plugin&lt;/h4&gt;
+&lt;p&gt;我们需要安装一个可视化插件，以便观察Java GC过程。&lt;/p&gt;
+
+&lt;h4 id=&quot;monitor-gc&quot;&gt;Monitor GC&lt;/h4&gt;
+&lt;p&gt;启动你的Java应用，Java VisualVM会自动开始监控，并把结果展示在Java VisualVM可视化接口中。你可以选择不同的组件来观察你感兴趣的指标。&lt;/p&gt;
+
+&lt;h2 id=&quot;参考的其他博客&quot;&gt;参考的其他博客&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://blog.csdn.net/yechaodechuntian/article/details/40341975&quot;&gt;java8的JVM持久代——何去何从？&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Mon, 05 Jun 2017 06:17:00 +0800</pubDate>
+        <link>http://localhost:4000//Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6</link>
+        <guid isPermaLink="true">http://localhost:4000//Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>如何进行特征处理</title>
+        <description>&lt;p&gt;参加kaggle的都知道，特征处理比跑模型重要的多，在特征处理上的时间也更多，这里总结一下常见的特征处理方法，在书上或者博客上看见一些比较好的处理特征的方法，我就总结在这里，并注明出处，持续更新。。。&lt;/p&gt;
+
+&lt;p&gt;先看看特征工程的总体，下面这幅图来自&lt;a href=&quot;http://www.jianshu.com/p/01a2647b43bc&quot;&gt;一次kaggle的特征工程总结&lt;/a&gt;，后面的总结不像这幅图系统，但是我会做到尽量分类，尽量系统。
+&lt;img src=&quot;http://images2015.cnblogs.com/blog/798143/201705/798143-20170516111744244-1343315599.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;离散型特征&quot;&gt;离散型特征&lt;/h2&gt;
+&lt;h3 id=&quot;离散型的值出现次数少&quot;&gt;离散型的值出现次数少&lt;/h3&gt;
+&lt;p&gt;如果某一列是离散型特征，而且这一列有些值出现的次数非常小（经常要对离散型特征的值统计一下次数，才能判断多小才是小），我们可以把这些值统一给一个值，例如Rare，在kaggle泰坦尼克号里面，就可以这么对人姓名的title这么处理。&lt;/p&gt;
+
+&lt;h3 id=&quot;去掉取值变化小的特征&quot;&gt;去掉取值变化小的特征&lt;/h3&gt;
+&lt;p&gt;这应该是最简单的特征选择方法了：假设某特征的特征值只有0和1，并且在所有输入样本中，95%的实例的该特征取值都是1，那就可以认为这个特征作用不大。如果100%都是1，那这个特征就没意义了。当特征值都是离散型变量的时候这种方法才能用，如果是连续型变量，就需要将连续变量离散化之后才能用，而且实际当中，一般不太会有95%以上都取某个值的特征存在，所以这种方法虽然简单但是不太好用。可以把它作为特征选择的预处理，先去掉那些取值变化小的特征，然后再从接下来提到的的特征选择方法中选择合适的进行进一步的特征选择。摘自&lt;a href=&quot;http://blog.csdn.net/woaidapaopao/article/details/62461380&quot;&gt;干货：结合Scikit-learn介绍几种常用的特征选择方法 &lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;label-encoding-vs-one-hot-encoding&quot;&gt;Label Encoding vs One Hot Encoding&lt;/h3&gt;
+&lt;p&gt;参加我的这篇博客&lt;a href=&quot;http://www.cnblogs.com/-Sai-/p/6708205.html&quot;&gt;Label Encoding vs One Hot Encoding&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;连续型特征&quot;&gt;连续型特征&lt;/h2&gt;
+&lt;h3 id=&quot;连续型特征映射成离散型&quot;&gt;连续型特征映射成离散型&lt;/h3&gt;
+&lt;p&gt;连续型特征在kaggle里常常被映射成离散型特征，具体的分析可以看我的博客&lt;a href=&quot;http://www.cnblogs.com/-Sai-/p/6707327.html&quot;&gt;机器学习模型为什么要将特征离散化&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;是否归一化或者标准化&quot;&gt;是否归一化或者标准化&lt;/h3&gt;
+&lt;p&gt;一般来说，连续型特征常常要做归一化或者标准化处理，但是假如你把特征映射成了离散型特征，那这个归一化或标准化处理可做可不做（一般可做可不做，就是不做，不然要增加计算量）。&lt;/p&gt;
+
+&lt;h2 id=&quot;缺失值处理&quot;&gt;缺失值处理&lt;/h2&gt;
+&lt;h3 id=&quot;缺失值处理常见方法&quot;&gt;缺失值处理常见方法&lt;/h3&gt;
+&lt;p&gt;用平均数、众数、K最近邻平均数等来赋值，要是离散型特征，可以直接用pandas的fillna()来填“missing”，然后做Label Encoding或者One Hot Encoding。&lt;/p&gt;
+
+&lt;h2 id=&quot;特征选择&quot;&gt;特征选择&lt;/h2&gt;
+&lt;h3 id=&quot;特征选择的方法&quot;&gt;特征选择的方法&lt;/h3&gt;
+&lt;p&gt;这里的特征选择仅仅是筛选特征，不包括降维。&lt;/p&gt;
+
+&lt;p&gt;按照周志华版的机器学习的第11章，他把特征选择的方法总结成了三类：过滤式，包裹式和嵌入式。（注：过滤式和包裹式的处理方式挺少见）&lt;/p&gt;
+
+&lt;h3 id=&quot;过滤式&quot;&gt;过滤式&lt;/h3&gt;
+&lt;p&gt;过滤式方法先对数据集进行特征选择，然后再训练学习器，特征选择过程和后续的学习器无关。选择过程有前向搜索和后向搜索，评价标准有子集的信息增益，相关统计量（周志华书）和拟合优度判定系数（ISLR）。&lt;/p&gt;
+
+&lt;h3 id=&quot;包裹式&quot;&gt;包裹式&lt;/h3&gt;
+&lt;p&gt;包裹式特征选择是把学习器的性能作为特征子集的评价标准。一般来说，包裹式特征选择比过滤式更好（因为过滤式特征选择不考虑后续的学习器的性能），但是计算开销上却比过滤式大得多。&lt;/p&gt;
+
+&lt;h3 id=&quot;嵌入式&quot;&gt;嵌入式&lt;/h3&gt;
+&lt;p&gt;嵌入式特征选择是将特征选择和学习器训练过程融合一体，两者在同一个优化过程中完成，常见的有L1正则化和L2正则化，但是L1正则化能更易获得一个稀疏的解。&lt;/p&gt;
+
+&lt;h3 id=&quot;单变量特征选择&quot;&gt;单变量特征选择&lt;/h3&gt;
+&lt;p&gt;单变量特征选择能够对每一个特征进行测试，衡量该特征和响应变量之间的关系，根据得分扔掉不好的特征。对于回归和分类问题可以采用卡方检验，皮尔逊相关系数等方式对特征进行测试。&lt;/p&gt;
+
+&lt;p&gt;这种方法比较简单，易于运行，易于理解，通常对于理解数据有较好的效果（但对特征优化、提高泛化能力来说不一定有效）；这种方法有许多改进的版本、变种。摘自&lt;a href=&quot;http://blog.csdn.net/woaidapaopao/article/details/62461380&quot;&gt;干货：结合Scikit-learn介绍几种常用的特征选择方法 &lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id=&quot;降维&quot;&gt;降维&lt;/h2&gt;
+&lt;p&gt;###降维的方法
+一般经过One Hot Encoding后，矩阵的维度可能会变的很大，此时一般需要进行降维的操作，常见的降维方法有PCA，更多的方法可以看看我的博客&lt;a href=&quot;http://www.cnblogs.com/-Sai-/p/6868534.html&quot;&gt;机器学习降维方法总结&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;特征构造&quot;&gt;特征构造&lt;/h2&gt;
+&lt;h3 id=&quot;构造新特征的方法&quot;&gt;构造新特征的方法&lt;/h3&gt;
+&lt;p&gt;泰坦尼克号比赛里面常用的一个构造新特征的方法是把兄弟姐妹的数量，伴侣的数据，父母子女的数量加起来，构造成一个新的特征：家庭的大小。&lt;/p&gt;
+
+&lt;p&gt;除了上面的直接相加，还有构造多项式特征（特征相乘）等。&lt;/p&gt;
+</description>
+        <pubDate>Mon, 05 Jun 2017 06:17:00 +0800</pubDate>
+        <link>http://localhost:4000//%E5%A6%82%E4%BD%95%E8%BF%9B%E8%A1%8C%E7%89%B9%E5%BE%81%E5%A4%84%E7%90%86</link>
+        <guid isPermaLink="true">http://localhost:4000//%E5%A6%82%E4%BD%95%E8%BF%9B%E8%A1%8C%E7%89%B9%E5%BE%81%E5%A4%84%E7%90%86</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Java String</title>
         <description>&lt;p&gt;这篇博客是对String的总结，注意，不是系统地讲解String方方面面，想学String的全部知识，看看Java编程思想的字符串这一章就行，这篇博客只是对String一些细节问题的总结。整篇博客会比较零散，我尽量系统地总结好，而且会持续更新。具体引用别人博客的地方，我会附上链接。&lt;/p&gt;
 
-&lt;h1 id=&quot;string-stringbuffer-stringbuilder&quot;&gt;String, StringBuffer, StringBuilder&lt;/h1&gt;
-&lt;h2 id=&quot;string-stringbuffer-stringbuilder三者的区别&quot;&gt;String, StringBuffer, StringBuilder三者的区别&lt;/h2&gt;
+&lt;h2 id=&quot;string-stringbuffer-stringbuilder&quot;&gt;String, StringBuffer, StringBuilder&lt;/h2&gt;
+&lt;h3 id=&quot;string-stringbuffer-stringbuilder三者的区别&quot;&gt;String, StringBuffer, StringBuilder三者的区别&lt;/h3&gt;
 &lt;p&gt;Java字符串处理离不开这三个类。这里总结下这三个类的区别，这里参考了&lt;a href=&quot;http://www.cnblogs.com/A_ming/archive/2010/04/13/1711395.html&quot;&gt;String、StringBuffer与StringBuilder之间区别&lt;/a&gt;。&lt;/p&gt;
 
-&lt;h3 id=&quot;执行效率&quot;&gt;执行效率&lt;/h3&gt;
+&lt;h4 id=&quot;执行效率&quot;&gt;执行效率&lt;/h4&gt;
 &lt;p&gt;在执行效率上StringBuilder &amp;gt; StringBuffer &amp;gt; String。但是也有例外，详情见下面的特殊的例子。&lt;/p&gt;
 
-&lt;h3 id=&quot;可变vs不可变&quot;&gt;可变vs不可变&lt;/h3&gt;
-&lt;p&gt;这点其实可以解释这三者执行效率的不同。主要原因是String是不可变类（有兴趣的同学可以看看String源码，其值是private final char value[]定义的），其他两个类是可变类。每次对String进行改变时，实际上是创建了新的对象，原来的对象会被GC回收掉。例如下面的代码，在执行第二句后，s实际上已经只想了新的String，其值为”abcd1”，而之前的String对象”abcd”由于没有引用指向它，所以后面会被GC回收。&lt;/p&gt;
+&lt;h4 id=&quot;可变vs不可变&quot;&gt;可变vs不可变&lt;/h4&gt;
+&lt;p&gt;这点其实可以解释这三者执行效率的不同。主要原因是String是不可变类（有兴趣的同学可以看看String源码，其值是private final char value[]定义的），其他两个类是可变类。每次对String进行改变时，实际上是创建了新的对象，原来的对象会被GC回收掉。例如下面的代码，在执行第二句后，s实际上已经指向了新的String，其值为”abcd1”，而之前的String对象”abcd”由于没有引用指向它，所以后面会被GC回收。&lt;/p&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;String s = &quot;abcd&quot;;
 s = s+1;
 System.out.print(s);// result : abcd1
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
-&lt;h3 id=&quot;线程安全vs线程不安全&quot;&gt;线程安全vs线程不安全&lt;/h3&gt;
+&lt;h4 id=&quot;线程安全vs线程不安全&quot;&gt;线程安全vs线程不安全&lt;/h4&gt;
 &lt;p&gt;线程安全：String, StringBuffer。&lt;/p&gt;
 
 &lt;p&gt;线程不安全：StringBuilder。&lt;/p&gt;
 
-&lt;h3 id=&quot;特殊的例子&quot;&gt;特殊的例子&lt;/h3&gt;
+&lt;h4 id=&quot;特殊的例子&quot;&gt;特殊的例子&lt;/h4&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;String str = “This is only a” + “ simple” + “ test”;
 StringBuilder builder = new StringBuilder(&quot;This is only a&quot;).append(&quot; simple&quot;).append(&quot; test&quot;);
 &lt;/code&gt;&lt;/pre&gt;
@@ -54,24 +461,305 @@ String str1 = str2 +str3 + str4;
 &lt;/div&gt;
 &lt;p&gt;这时候JVM会规规矩矩的按照原来的方式去做。&lt;/p&gt;
 
-&lt;h2 id=&quot;如何比较stringbuffer字符串内容相等&quot;&gt;如何比较StringBuffer字符串内容相等&lt;/h2&gt;
+&lt;h3 id=&quot;如何比较stringbuffer字符串内容相等&quot;&gt;如何比较StringBuffer字符串内容相等&lt;/h3&gt;
 &lt;p&gt;大家都知道String在比较内容相等时，用equals方法就行，这是因为String重写了Object的equals方法。但是StringBuffer没有重写equals方法，所以不能用equals来比较。&lt;/p&gt;
 
 &lt;p&gt;所以我们一般用toString()把StringBuffer转换为String，再利用equals来比较。&lt;/p&gt;
 
-&lt;h2 id=&quot;string重载与stringbuilder&quot;&gt;String重载”+”与StringBuilder&lt;/h2&gt;
+&lt;h3 id=&quot;string重载与stringbuilder&quot;&gt;String重载”+”与StringBuilder&lt;/h3&gt;
 &lt;p&gt;在Java中的String类已经重载的”+”。也就是说，字符串可以直接使用”+”进行连接。大家都知道，大量用”+”操作的时候，会产生很多垃圾，所以一般用StringBuilder或者StringBuffer。（这部分参考了Java编程思想的第13章字符串）&lt;/p&gt;
 
 &lt;p&gt;而我们在用javap反编译的时候，发现编译时仍然将”+”转换成StringBuilder。因此，我们可以得出结论，在进行字符串连接时，实际上使用的是StringBuilder类的append()方法。&lt;/p&gt;
 
 &lt;p&gt;但是编译器不会进行很多优化，每进行一次”+”，就会创建一个StringBuilder对象，虽然Java有垃圾回收器，但这个回收器的工作时间是不定的。如果不断产生这样的垃圾，那么仍然会占用大量的资源。解决这个问题的方法就是在程序中直接使用StringBuilder类来连接字符串。&lt;/p&gt;
 </description>
-        <pubDate>Sat, 14 Jan 2017 06:17:00 +0800</pubDate>
-        <link>http://localhost:4000//my-first-blog</link>
-        <guid isPermaLink="true">http://localhost:4000//my-first-blog</guid>
+        <pubDate>Wed, 24 May 2017 06:17:00 +0800</pubDate>
+        <link>http://localhost:4000//Java-String</link>
+        <guid isPermaLink="true">http://localhost:4000//Java-String</guid>
         
         
-        <category>beginner</category>
+      </item>
+    
+      <item>
+        <title>机器学习降维方法总结</title>
+        <description>&lt;p&gt;降维在机器学习里面再正常不过了，这里总结了降维的一些方法，主要参考了陈利人老师的“数据分析领域中最为人称道的七种降维方法”（在微信公众号看到的，无法提供链接，有兴趣的可以搜索看原文）。不过这篇文章除了PCA，其他的降维方法多多少少有点特征工程的意思了。&lt;/p&gt;
+
+&lt;h2 id=&quot;缺失值比率-missing-values-ratio&quot;&gt;缺失值比率 (Missing Values Ratio)&lt;/h2&gt;
+&lt;p&gt;该方法的是基于包含太多缺失值的数据列包含有用信息的可能性较少。因此，可以将数据列缺失值大于某个阈值的列去掉。阈值越高，降维方法更为积极，即降维越少。&lt;/p&gt;
+
+&lt;h2 id=&quot;低方差滤波&quot;&gt;低方差滤波&lt;/h2&gt;
+&lt;p&gt;与上个方法相似，该方法假设数据列变化非常小的列包含的信息量少。因此，所有的数据列方差小的列被移除。需要注意的一点是：方差与数据范围相关的，因此在采用该方法前需要对数据做归一化处理。&lt;/p&gt;
+
+&lt;h2 id=&quot;高相关滤波&quot;&gt;高相关滤波&lt;/h2&gt;
+&lt;p&gt;高相关滤波认为当两列数据变化趋势相似时，它们包含的信息也显示。这样，使用相似列中的一列就可以满足机器学习模型。对于数值列之间的相似性通过计算相关系数来表示，对于名词类列的相关系数可以通过计算皮尔逊卡方值来表示。相关系数大于某个阈值的两列只保留一列。同样要注意的是：相关系数对范围敏感，所以在计算之前也需要对数据进行归一化处理。&lt;/p&gt;
+
+&lt;h2 id=&quot;随机森林组合树&quot;&gt;随机森林/组合树&lt;/h2&gt;
+&lt;p&gt;组合决策树通常又被成为随机森林，它在进行特征选择与构建有效的分类器时非常有用。一种常用的降维方法是对目标属性产生许多巨大的树，然后根据对每个属性的统计结果找到信息量最大的特征子集。例如，我们能够对一个非常巨大的数据集生成非常层次非常浅的树，每颗树只训练一小部分属性。如果一个属性经常成为最佳分裂属性，那么它很有可能是需要保留的信息特征。对随机森林数据属性的统计评分会向我们揭示与其它属性相比，哪个属性才是预测能力最好的属性。&lt;/p&gt;
+
+&lt;h2 id=&quot;主成分分析-pca&quot;&gt;主成分分析 (PCA)&lt;/h2&gt;
+&lt;p&gt;主成分分析是一个统计过程，该过程通过正交变换将原始的 n 维数据集变换到一个新的被称做主成分的数据集中。变换后的结果中，第一个主成分具有最大的方差值，每个后续的成分在与前述主成分正交条件限制下与具有最大方差。降维时仅保存前 m(m &amp;lt; n) 个主成分即可保持最大的数据信息量。需要注意的是主成分变换对正交向量的尺度敏感。数据在变换前需要进行归一化处理。同样也需要注意的是，新的主成分并不是由实际系统产生的，因此在进行 PCA 变换后会丧失数据的解释性。如果说，数据的解释能力对你的分析来说很重要，那么 PCA 对你来说可能就不适用了。&lt;/p&gt;
+
+&lt;h2 id=&quot;反向特征消除&quot;&gt;反向特征消除&lt;/h2&gt;
+&lt;p&gt;在该方法中，所有分类算法先用 n 个特征进行训练。每次降维操作，采用 n-1 个特征对分类器训练 n 次，得到新的 n 个分类器。将新分类器中错分率变化最小的分类器所用的 n-1 维特征作为降维后的特征集。不断的对该过程进行迭代，即可得到降维后的结果。第k 次迭代过程中得到的是 n-k 维特征分类器。通过选择最大的错误容忍率，我们可以得到在选择分类器上达到指定分类性能最小需要多少个特征。&lt;/p&gt;
+
+&lt;h2 id=&quot;前向特征构造&quot;&gt;前向特征构造&lt;/h2&gt;
+&lt;p&gt;前向特征构建是反向特征消除的反过程。在前向特征过程中，我们从 1 个特征开始，每次训练添加一个让分类器性能提升最大的特征。前向特征构造和反向特征消除都十分耗时。它们通常用于输入维数已经相对较低的数据集。&lt;/p&gt;
+
+&lt;p&gt;除了本博客中提到的其中，还包括：随机投影(Random Projections)、非负矩阵分解(N0n-negative Matrix Factorization),自动编码(Auto-encoders),卡方检测与信息增益(Chi-square and information gain)， 多维标定(Multidimensional Scaling), 相关性分析(Coorespondence Analysis), 因子分析(Factor Analysis)、聚类(Clustering)以及贝叶斯模型(Bayesian Models)。&lt;/p&gt;
+</description>
+        <pubDate>Thu, 18 May 2017 06:17:00 +0800</pubDate>
+        <link>http://localhost:4000//%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E9%99%8D%E7%BB%B4%E6%96%B9%E6%B3%95%E6%80%BB%E7%BB%93</link>
+        <guid isPermaLink="true">http://localhost:4000//%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E9%99%8D%E7%BB%B4%E6%96%B9%E6%B3%95%E6%80%BB%E7%BB%93</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Scikit-Learn Tutorial</title>
+        <description>&lt;p&gt;这是一篇翻译的博客，原文链接在&lt;a href=&quot;https://www.datacamp.com/community/blog/scikit-learn-cheat-sheet#gs.BkcjXqk&quot;&gt;这里&lt;/a&gt;。这是我看的为数不多的介绍scikit-learn简介而全面的文章，特别适合入门。我这里把这篇文章翻译一下，英语好的同学可以直接看原文。&lt;/p&gt;
+
+&lt;p&gt;大部分喜欢用Python来学习数据科学的人，应该听过scikit-learn，这个开源的Python库帮我们实现了一系列有关机器学习，数据处理，交叉验证和可视化的算法。其提供的接口非常好用。&lt;/p&gt;
+
+&lt;p&gt;这就是为什么DataCamp(原网站)要为那些已经开始学习Python库却没有一个简明且方便的总结的人提供这个总结。（原文是cheat sheet，翻译过来就是小抄，我这里翻译成总结，感觉意思上更积极点）。或者你压根都不知道scikit-learn如何使用，那这份总结将会帮助你快速的了解其相关的基本知识，让你快速上手。&lt;/p&gt;
+
+&lt;p&gt;你会发现，当你处理机器学习问题时，scikit-learn简直就是神器。&lt;/p&gt;
+
+&lt;p&gt;这份scikit-learn总结将会介绍一些基本步骤让你快速实现机器学习算法，主要包括：读取数据，数据预处理，如何创建模型来拟合数据，如何验证你的模型以及如何调参让模型变得更好。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://community.datacamp.com.s3.amazonaws.com/community/production/ckeditor_assets/pictures/294/content_button-cheatsheet-scikit_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;总的来说，这份总结将会通过示例代码让你开始你的数据科学项目，你能立刻创建模型，验证模型，调试模型。（原文提供了pdf版的下载，内容和原文差不多）&lt;/p&gt;
+
+&lt;h2 id=&quot;a-basic-example&quot;&gt;A Basic Example&lt;/h2&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn import neighbors, datasets, preprocessing
+&amp;gt;&amp;gt;&amp;gt; from sklearn.cross_validation import train_test_split
+&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import accuracy_score
+&amp;gt;&amp;gt;&amp;gt; iris = datasets.load_iris()
+&amp;gt;&amp;gt;&amp;gt; X, y = iris.data[:, :2], iris.target
+&amp;gt;&amp;gt;&amp;gt; X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=33)
+&amp;gt;&amp;gt;&amp;gt; scaler = preprocessing.StandardScaler().fit(X_train)
+&amp;gt;&amp;gt;&amp;gt; X_train = scaler.transform(X_train)
+&amp;gt;&amp;gt;&amp;gt; X_test = scaler.transform(X_test)
+&amp;gt;&amp;gt;&amp;gt; knn = neighbors.KNeighborsClassifier(n_neighbors=5)
+&amp;gt;&amp;gt;&amp;gt; knn.fit(X_train, y_train)
+&amp;gt;&amp;gt;&amp;gt; y_pred = knn.predict(X_test)
+&amp;gt;&amp;gt;&amp;gt; accuracy_score(y_test, y_pred)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;（补充，这里看不懂不要紧，其实就是个小例子，后面会详细解答）&lt;/p&gt;
+
+&lt;h2 id=&quot;loading-the-data&quot;&gt;Loading The Data&lt;/h2&gt;
+&lt;p&gt;你的数据需要是numeric类型，然后存储成numpy数组或者scipy稀疏矩阵。我们也接受其他能转换成numeric数组的类型，比如Pandas的DataFrame。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; import numpy as np
+&amp;gt;&amp;gt;&amp;gt; X = np.random.random((10,5))
+&amp;gt;&amp;gt;&amp;gt; y = np.array(['M','M','F','F','M','F','M','M','F','F','F'])
+&amp;gt;&amp;gt;&amp;gt; X[X &amp;lt; 0.7] = 0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;preprocessing-the-data&quot;&gt;Preprocessing The Data&lt;/h2&gt;
+&lt;h3 id=&quot;standardization&quot;&gt;Standardization&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.preprocessing import StandardScaler
+&amp;gt;&amp;gt;&amp;gt; scaler = StandardScaler().fit(X_train)
+&amp;gt;&amp;gt;&amp;gt; standardized_X = scaler.transform(X_train)
+&amp;gt;&amp;gt;&amp;gt; standardized_X_test = scaler.transform(X_test)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;normalization&quot;&gt;Normalization&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.preprocessing import Normalizer
+&amp;gt;&amp;gt;&amp;gt; scaler = Normalizer().fit(X_train)
+&amp;gt;&amp;gt;&amp;gt; normalized_X = scaler.transform(X_train)
+&amp;gt;&amp;gt;&amp;gt; normalized_X_test = scaler.transform(X_test)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;binarization&quot;&gt;Binarization&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.preprocessing import Binarizer
+&amp;gt;&amp;gt;&amp;gt; binarizer = Binarizer(threshold=0.0).fit(X)
+&amp;gt;&amp;gt;&amp;gt; binary_X = binarizer.transform(X)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;encoding-categorical-features&quot;&gt;Encoding Categorical Features&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.preprocessing import LabelEncoder
+&amp;gt;&amp;gt;&amp;gt; enc = LabelEncoder()
+&amp;gt;&amp;gt;&amp;gt; y = enc.fit_transform(y)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;imputing-missing-values&quot;&gt;Imputing Missing Values&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt;from sklearn.preprocessing import Imputer
+&amp;gt;&amp;gt;&amp;gt;imp = Imputer(missing_values=0, strategy='mean', axis=0)
+&amp;gt;&amp;gt;&amp;gt;imp.fit_transform(X_train)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;generating-polynomial-features&quot;&gt;Generating Polynomial Features&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.preprocessing import PolynomialFeatures)
+&amp;gt;&amp;gt;&amp;gt; poly = PolynomialFeatures(5))
+&amp;gt;&amp;gt;&amp;gt; oly.fit_transform(X))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;training-and-test-data&quot;&gt;Training And Test Data&lt;/h2&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.cross_validation import train_test_split)
+&amp;gt;&amp;gt;&amp;gt; X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=0))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;create-your-model&quot;&gt;Create Your Model&lt;/h2&gt;
+&lt;h3 id=&quot;supervised-learning-estimators&quot;&gt;Supervised Learning Estimators&lt;/h3&gt;
+&lt;h3 id=&quot;linear-regression&quot;&gt;Linear Regression&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.linear_model import LinearRegression)
+&amp;gt;&amp;gt;&amp;gt; lr = LinearRegression(normalize=True))
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;support-vector-machines-svm&quot;&gt;Support Vector Machines (SVM)&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.svm import SVC)
+&amp;gt;&amp;gt;&amp;gt; svc = SVC(kernel='linear'))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;naive-bayes&quot;&gt;Naive Bayes&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.naive_bayes import GaussianNB)
+&amp;gt;&amp;gt;&amp;gt; gnb = GaussianNB())
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;knn&quot;&gt;KNN&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn import neighbors)
+&amp;gt;&amp;gt;&amp;gt; knn = neighbors.KNeighborsClassifier(n_neighbors=5))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;unsupervised-learning-estimators&quot;&gt;Unsupervised Learning Estimators&lt;/h3&gt;
+&lt;h3 id=&quot;principal-component-analysis-pca&quot;&gt;Principal Component Analysis (PCA)&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.decomposition import PCA)
+&amp;gt;&amp;gt;&amp;gt; pca = PCA(n_components=0.95))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;k-means&quot;&gt;K Means&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.cluster import KMeans)
+&amp;gt;&amp;gt;&amp;gt; k_means = KMeans(n_clusters=3, random_state=0))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h2 id=&quot;model-fitting&quot;&gt;Model Fitting&lt;/h2&gt;
+&lt;h3 id=&quot;supervised-learning&quot;&gt;Supervised learning&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; lr.fit(X, y))
+&amp;gt;&amp;gt;&amp;gt; knn.fit(X_train, y_train))
+&amp;gt;&amp;gt;&amp;gt; svc.fit(X_train, y_train))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;unsupervised-learning&quot;&gt;Unsupervised Learning&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; k_means.fit(X_train))
+&amp;gt;&amp;gt;&amp;gt; pca_model = pca.fit_transform(X_train))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;prediction&quot;&gt;Prediction&lt;/h2&gt;
+&lt;h3 id=&quot;supervised-estimators&quot;&gt;Supervised Estimators&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; y_pred = svc.predict(np.random.random((2,5))))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; y_pred = lr.predict(X_test))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; y_pred = knn.predict_proba(X_test))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;unsupervised-estimators&quot;&gt;Unsupervised Estimators&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; y_pred = k_means.predict(X_test))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;evaluate-your-models-performance&quot;&gt;Evaluate Your Model’s Performance&lt;/h2&gt;
+&lt;h3 id=&quot;classification-metrics&quot;&gt;Classification Metrics&lt;/h3&gt;
+&lt;h3 id=&quot;accuracy-score&quot;&gt;Accuracy Score&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; knn.score(X_test, y_test))
+&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import accuracy_score)
+&amp;gt;&amp;gt;&amp;gt; accuracy_score(y_test, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;classification-report&quot;&gt;Classification Report&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import classification_report)
+&amp;gt;&amp;gt;&amp;gt; print(classification_report(y_test, y_pred)))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;confusion-matrix&quot;&gt;Confusion Matrix&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import confusion_matrix)
+&amp;gt;&amp;gt;&amp;gt; print(confusion_matrix(y_test, y_pred)))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;regression-metrics&quot;&gt;Regression Metrics&lt;/h3&gt;
+&lt;h3 id=&quot;mean-absolute-error&quot;&gt;Mean Absolute Error&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import mean_absolute_error)
+&amp;gt;&amp;gt;&amp;gt; y_true = [3, -0.5, 2])
+&amp;gt;&amp;gt;&amp;gt; mean_absolute_error(y_true, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;mean-squared-error&quot;&gt;Mean Squared Error&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import mean_squared_error)
+&amp;gt;&amp;gt;&amp;gt; mean_squared_error(y_test, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;r2-score&quot;&gt;R2 Score&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import r2_score)
+&amp;gt;&amp;gt;&amp;gt; r2_score(y_true, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;clustering-metrics&quot;&gt;Clustering Metrics&lt;/h3&gt;
+&lt;h3 id=&quot;adjusted-rand-index&quot;&gt;Adjusted Rand Index&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import adjusted_rand_score)
+&amp;gt;&amp;gt;&amp;gt; adjusted_rand_score(y_true, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;homogeneity&quot;&gt;Homogeneity&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import homogeneity_score)
+&amp;gt;&amp;gt;&amp;gt; homogeneity_score(y_true, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;v-measure&quot;&gt;V-measure&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.metrics import v_measure_score)
+&amp;gt;&amp;gt;&amp;gt; metrics.v_measure_score(y_true, y_pred))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;cross-validation&quot;&gt;Cross-Validation&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; print(cross_val_score(knn, X_train, y_train, cv=4))
+&amp;gt;&amp;gt;&amp;gt; print(cross_val_score(lr, X, y, cv=2))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;tune-your-model&quot;&gt;Tune Your Model&lt;/h2&gt;
+&lt;h3 id=&quot;grid-search&quot;&gt;Grid Search&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.grid_search import GridSearchCV
+&amp;gt;&amp;gt;&amp;gt; params = {&quot;n_neighbors&quot;: np.arange(1,3), &quot;metric&quot;: [&quot;euclidean&quot;, &quot;cityblock&quot;]}
+&amp;gt;&amp;gt;&amp;gt; grid = GridSearchCV(estimator=knn,param_grid=params)
+&amp;gt;&amp;gt;&amp;gt; grid.fit(X_train, y_train)
+&amp;gt;&amp;gt;&amp;gt; print(grid.best_score_)
+&amp;gt;&amp;gt;&amp;gt; print(grid.best_estimator_.n_neighbors)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;randomized-parameter-optimization&quot;&gt;Randomized Parameter Optimization&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from sklearn.grid_search import RandomizedSearchCV
+&amp;gt;&amp;gt;&amp;gt; params = {&quot;n_neighbors&quot;: range(1,5), &quot;weights&quot;: [&quot;uniform&quot;, &quot;distance&quot;]}
+&amp;gt;&amp;gt;&amp;gt; rsearch = RandomizedSearchCV(estimator=knn,
+   param_distributions=params,
+   cv=4,
+   n_iter=8,
+   random_state=5)
+&amp;gt;&amp;gt;&amp;gt; rsearch.fit(X_train, y_train)
+&amp;gt;&amp;gt;&amp;gt; print(rsearch.best_score_)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;going-further&quot;&gt;Going Further&lt;/h2&gt;
+&lt;p&gt;学习完上面的例子后，你可以通过&lt;a href=&quot;https://www.datacamp.com/community/tutorials/machine-learning-python#gs.mDi3ekM&quot;&gt;our scikit-learn tutorial for beginners&lt;/a&gt;来学习更多的例子。另外你可以学习matplotlib来可视化数据。&lt;/p&gt;
+
+&lt;p&gt;不要错过后续教程 &lt;a href=&quot;https://www.datacamp.com/community/blog/bokeh-cheat-sheet-python&quot;&gt;Bokeh cheat sheet&lt;/a&gt;, &lt;a href=&quot;https://www.datacamp.com/community/blog/python-pandas-cheat-sheet#gs.0dYnfNg&quot;&gt;the Pandas cheat sheet&lt;/a&gt; or &lt;a href=&quot;https://www.datacamp.com/community/tutorials/python-data-science-cheat-sheet-basics#gs.Eekdm2k&quot;&gt;the Python cheat sheet for data science&lt;/a&gt;.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 07 Apr 2017 06:17:00 +0800</pubDate>
+        <link>http://localhost:4000//Scikit-Learn-Tutorial</link>
+        <guid isPermaLink="true">http://localhost:4000//Scikit-Learn-Tutorial</guid>
+        
         
       </item>
     
